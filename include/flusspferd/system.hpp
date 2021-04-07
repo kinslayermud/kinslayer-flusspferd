@@ -31,7 +31,7 @@ namespace flusspferd {
 
 class object;
 
-void load_system_module(object &context);
+void load_system_module(object context);
 
 }
 

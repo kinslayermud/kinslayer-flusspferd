@@ -67,7 +67,7 @@ protected:
 };
 
 
-void flusspferd::load_system_module(object &context) {
+void flusspferd::load_system_module(object context) {
   object exports = context.get_property_object("exports");
 
   context.call("require", "io");

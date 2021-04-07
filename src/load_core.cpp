@@ -37,9 +37,9 @@ THE SOFTWARE.
 #include "flusspferd/create.hpp"
 
 #include <boost/filesystem.hpp>
-#include <boost/spirit/home/phoenix/core.hpp>
-#include <boost/spirit/home/phoenix/bind.hpp>
-#include <boost/spirit/home/phoenix/operator.hpp>
+#include <boost/phoenix/core.hpp>
+#include <boost/phoenix/bind.hpp>
+#include <boost/phoenix/operator.hpp>
 namespace phoenix = boost::phoenix;
 namespace args = phoenix::arg_names;
 
