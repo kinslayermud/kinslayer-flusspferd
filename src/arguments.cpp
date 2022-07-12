@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "flusspferd/value.hpp"
 #include <functional>
 #include <cassert>
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 using namespace flusspferd;
 
@@ -123,7 +123,7 @@ arguments::iterator &arguments::iterator::operator++() {
 }
 
 value arguments::iterator::operator*() const {
-  jsval * v = Impl::arguments_impl::iterator_impl::operator*();
+  JS::Value * v = Impl::arguments_impl::iterator_impl::operator*();
   assert(v);
   return Impl::wrap_jsvalp(v);
 }

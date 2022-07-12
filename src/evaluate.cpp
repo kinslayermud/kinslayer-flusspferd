@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/init.hpp"
 #include "flusspferd/modules.hpp"
 
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 #include <cstring>
 
@@ -54,7 +54,7 @@ value flusspferd::evaluate_in_scope(
   JSContext *cx = Impl::current_context();
 
   jsval rval;
-  JSBool ok = JS_EvaluateScript(cx, Impl::get_object(scope),
+  bool ok = JS_EvaluateScript(cx, Impl::get_object(scope),
                                 source, n, file, line, &rval);
   if(!ok) {
     exception e("Could not evaluate script");
@@ -108,7 +108,7 @@ value flusspferd::execute(char const *filename, object const &scope_) {
 
   value result;
 
-  JSBool ok = JS_ExecuteScript(cx, scope, script, Impl::get_jsvalp(result));
+  bool ok = JS_ExecuteScript(cx, scope, script, Impl::get_jsvalp(result));
 
   if (!ok) {
     exception e("Script execution failed");

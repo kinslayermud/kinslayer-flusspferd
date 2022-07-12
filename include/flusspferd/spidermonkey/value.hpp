@@ -27,7 +27,7 @@ THE SOFTWARE.
 #ifndef FLUSSPFERD_SPIDERMONKEY_VALUE_HPP
 #define FLUSSPFERD_SPIDERMONKEY_VALUE_HPP
 
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 namespace flusspferd {
 
@@ -39,25 +39,25 @@ class object;
 namespace Impl {
 
 class value_impl {
-  jsval val;
-  jsval *ref;
+  JS::Value val;
+  JS::Value *ref;
 
 protected:
-  jsval get() const { return *ref; }
-  jsval *getp()     { return ref; }
-  void set(jsval v) { *ref = v; }
-  void setp(jsval *p) { ref = p; }
-  void setval(jsval v) { val = v; }
-  jsval *getvalp() { return &val; }
+  JS::Value get() const { return *ref; }
+  JS::Value *getp()     { return ref; }
+  void set(JS::Value v) { *ref = v; }
+  void setp(JS::Value *p) { ref = p; }
+  void setval(JS::Value v) { val = v; }
+  JS::Value *getvalp() { return &val; }
 
-  value_impl(jsval v) : val(v), ref(&val) { }
-  value_impl(jsval *v) : val(JSVAL_VOID), ref(v) { }
-  value_impl() : val(JSVAL_VOID), ref(&val) { }
+  value_impl(JS::Value v) : val(v), ref(&val) { }
+  value_impl(JS::Value *v) : val(JS::UndefinedValue()), ref(v) { }
+  value_impl() : val(JS::UndefinedValue()), ref(&val) { }
 
-  friend jsval get_jsval(value_impl const &v);
-  friend value_impl wrap_jsval(jsval v);
-  friend jsval *get_jsvalp(value_impl &v);
-  friend value_impl wrap_jsvalp(jsval *p);
+  friend JS::Value get_jsval(value_impl const &v);
+  friend value_impl wrap_jsval(JS::Value v);
+  friend JS::Value *get_jsvalp(value_impl &v);
+  friend value_impl wrap_jsvalp(JS::Value *p);
 
   template<typename T>
   static value_impl from_integer(T const &num);
@@ -72,7 +72,7 @@ public:
       val = o.val;
       ref = &val;
     } else {
-      val = JSVAL_VOID;
+      val = JS::UndefinedValue();
       ref = o.ref;
     }
   }
@@ -87,30 +87,28 @@ public:
   }
 };
 
-inline jsval get_jsval(value_impl const &v) {
+JS::RootedValue get_rooted_handle(value_impl const &v);
+JS::MutableHandleValue get_mutable_handle(value_impl const &v);
+
+inline JS::Value get_jsval(value_impl const &v) {
   return v.get();
 }
 
-inline value_impl wrap_jsval(jsval v) {
+inline value_impl wrap_jsval(JS::Value v) {
   return value_impl(v);
 }
 
-inline jsval *get_jsvalp(value_impl &v) {
+inline JS::Value *get_jsvalp(value_impl &v) {
   return v.getp();
 }
 
-inline value_impl wrap_jsvalp(jsval *p) {
+inline value_impl wrap_jsvalp(JS::Value *p) {
   return value_impl(p);
 }
 
 template<typename T>
 value_impl value_impl::from_integer(T const &num) {
-  if (INT_FITS_IN_JSVAL(num)) {
-    return wrap_jsval(INT_TO_JSVAL(num));
-  } else {
-    //TODO: check range?
-    return from_double(num);
-  }
+  return wrap_jsval(JS::Int32Value(num));
 }
 
 }

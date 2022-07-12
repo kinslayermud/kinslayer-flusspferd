@@ -35,7 +35,7 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/init.hpp"
 #include "flusspferd/spidermonkey/context.hpp"
 #include "flusspferd/spidermonkey/value.hpp"
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 namespace flusspferd { namespace detail {
 
@@ -43,13 +43,13 @@ template<typename T>
 root<T>::root(T const &o)
 : T(o)
 {
-  JSBool status;
+  bool status;
 
   status = JS_AddRoot(
     Impl::current_context(),
     T::get_gcptr());
 
-  if (status == JS_FALSE) {
+  if (status == false) {
     throw exception("Cannot root Javascript value");
   }
 }

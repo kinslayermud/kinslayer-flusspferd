@@ -37,11 +37,7 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/value.hpp"
 #include "flusspferd/spidermonkey/object.hpp"
 #include <cassert>
-#include <js/jsapi.h>
-
-#if JS_VERSION < 180
-#include <js/jsobj.h>
-#endif
+#include <jsapi.h>
 
 using namespace flusspferd;
 
@@ -138,7 +134,7 @@ value object::get_property(value const &id) const {
 bool object::has_property(char const *name) const {
   if (is_null())
     throw exception("Could not check property (object is null)");
-  JSBool foundp;
+  bool foundp;
   if (!JS_HasProperty(Impl::current_context(), get_const(), name,
                       &foundp))
     throw exception("Could not check property");
@@ -154,7 +150,7 @@ bool object::has_property(value const &id) const {
     throw exception("Could not check property (object is null)");
   local_root_scope scope;
   string name = id.to_string();
-  JSBool foundp;
+  bool foundp;
   if (!JS_HasUCProperty(Impl::current_context(), get_const(),
                         (jschar*)name.data(), name.length(),
                         &foundp))
@@ -178,21 +174,10 @@ bool object::has_own_property(value const &id) const {
   if (is_null())
     throw exception("Could not check property (object is null)");
 
-  JSBool has;
-#if JS_VERSION >= 180
+  bool has;
   string name = id.to_string();
   if (!JS_AlreadyHasOwnUCProperty(Impl::current_context(), get_const(),
                                   (jschar*)name.data(), name.length(), &has))
-#else
-  JSObject *obj = get_const();
-  jsval argv[] = { Impl::get_jsval(id) };
-  jsval vp;
-  JSBool ret = js_HasOwnPropertyHelper(Impl::current_context(), obj,
-                                       obj->map->ops->lookupProperty, 1, argv, 
-                                       &vp);
-  has = JSVAL_TO_BOOLEAN(vp);
-  if (!ret)
-#endif
   {
     throw exception("Unable to check for own property");
   }
@@ -293,7 +278,7 @@ value object::apply(object const &fn, arguments const &arg_) {
 
   JSContext *cx = Impl::current_context();
 
-  JSBool status = JS_CallFunctionValue(
+  bool status = JS_CallFunctionValue(
       cx,
       get(),
       Impl::get_jsval(fnv),
@@ -321,7 +306,7 @@ value object::call(char const *fn, arguments const &arg_) {
 
   JSContext *cx = Impl::current_context();
 
-  JSBool status = JS_CallFunctionName(
+  bool status = JS_CallFunctionName(
       cx,
       get(),
       fn,
@@ -380,14 +365,14 @@ bool object::get_property_attributes(
 
   flusspferd::root_string name_r(name);
 
-  JSBool found;
+  bool found;
   void *getter_op, *setter_op;
   uintN sm_flags;
 
   attrs.flags = no_property_flag;
   attrs.getter = boost::none;
   attrs.setter = boost::none;
-  JSBool success = JS_GetUCPropertyAttrsGetterAndSetter(
+  bool success = JS_GetUCPropertyAttrsGetterAndSetter(
           Impl::current_context(), get_const(), (jschar*)name.data(), name.length(),
           &sm_flags, &found,
           (JSPropertyOp*)&getter_op, (JSPropertyOp*)&setter_op);
@@ -424,7 +409,6 @@ bool object::get_property_attributes(
   }
   return true;
 }
-
 
 object object::constructor() const {
 	if (is_null())

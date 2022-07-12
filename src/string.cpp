@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/init.hpp"
 #include "flusspferd/spidermonkey/value.hpp"
 #include "flusspferd/spidermonkey/context.hpp"
-#include <js/jsapi.h>
+#include <jsapi.h>
 #include <cstring>
 #include <string>
 

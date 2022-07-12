@@ -31,7 +31,7 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/init.hpp"
 #include "flusspferd/spidermonkey/object.hpp"
 #include "flusspferd/spidermonkey/string.hpp"
-#include <js/jsapi.h>
+#include <jsapi.h>
 #include <cassert>
 #include <cmath>
 
@@ -42,41 +42,39 @@ THE SOFTWARE.
 using namespace flusspferd;
 
 value::~value() { }
-value::value() : Impl::value_impl(JSVAL_VOID) { }
+value::value() : Impl::value_impl(JS::UndefinedValue()) { }
 
-bool value::is_null() const { return JSVAL_IS_NULL(get()); }
-bool value::is_undefined() const { return JSVAL_IS_VOID(get()); }
-bool value::is_int() const { return JSVAL_IS_INT(get()); }
-bool value::is_double() const { return JSVAL_IS_DOUBLE(get()); }
-bool value::is_number() const { return JSVAL_IS_NUMBER(get()); }
-bool value::is_boolean() const { return JSVAL_IS_BOOLEAN(get()); }
-bool value::is_string() const { return JSVAL_IS_STRING(get()); }
-bool value::is_object() const { return JSVAL_IS_OBJECT(get()); }
+bool value::is_null() const { return get().isNull(); }
+bool value::is_undefined() const { return get().isUndefined(); }
+bool value::is_int() const { return get().isInt32(); }
+bool value::is_double() const { return get().isDouble(); }
+bool value::is_number() const { return get().isNumber(); }
+bool value::is_boolean() const { return get().isBoolean(); }
+bool value::is_string() const { return get().isString(); }
+bool value::is_object() const { return get().isObject(); }
 bool value::is_function() const {
   return JS_TypeOfValue(Impl::current_context(), get()) == JSTYPE_FUNCTION;
 }
 
 bool value::get_boolean() const {
   assert(is_boolean());
-  return JSVAL_TO_BOOLEAN(get());
+  return get().toBoolean();
 }
 int value::get_int() const {
   assert(is_int());
-  return JSVAL_TO_INT(get());
+  return get().toInt32();
 }
 double value::get_double() const {
   assert(is_double());
-  jsdouble *d = JSVAL_TO_DOUBLE(get());
-  assert(d);
-  return *d;
+  return get().toDouble();
 }
 object value::get_object() const {
   assert(is_object());
-  return Impl::wrap_object(JSVAL_TO_OBJECT(get()));
+  return Impl::wrap_object(get().toObject());
 }
 string value::get_string() const {
   assert(is_string());
-  return Impl::wrap_string(JSVAL_TO_STRING(get()));
+  return Impl::wrap_string(get().toString());
 }
 
 string value::to_string() const {
@@ -117,10 +115,10 @@ double value::to_integral_number(int bits, bool signedness) const {
 }
 
 bool value::to_boolean() const {
-  JSBool result;
+  bool result;
   if (!JS_ValueToBoolean(Impl::current_context(), get(), &result))
     throw exception("Could not convert value to boolean");
-  return result != JS_FALSE;
+  return result != false;
 }
 
 object value::to_object() const {
@@ -145,12 +143,12 @@ string value::to_source() const {
 }
 
 void value::bind(value o) {
-  setval(JSVAL_VOID);
+  setval(JS::UndefinedValue());
   setp(o.getp());
 }
 
 void value::unbind() {
-  setval(JSVAL_VOID);
+  setval(JS::UndefinedValue());
   setp(getvalp());
 }
 
@@ -165,13 +163,23 @@ Impl::value_impl Impl::value_impl::from_double(double num) {
 }
 
 Impl::value_impl Impl::value_impl::from_boolean(bool x) {
-  return wrap_jsval(BOOLEAN_TO_JSVAL(x));
+  return wrap_jsval(JS::BooleanValue(x));
 }
 
 Impl::value_impl Impl::value_impl::from_string(string const &s) {
-  return wrap_jsval(STRING_TO_JSVAL(Impl::get_string(const_cast<string&>(s))));
+  return wrap_jsval(JS::StringValue(Impl::get_string(const_cast<string&>(s))));
 }
 
 Impl::value_impl Impl::value_impl::from_object(object const &o) {
-  return wrap_jsval(OBJECT_TO_JSVAL(Impl::get_object(const_cast<object&>(o))));
+  return wrap_jsval(JS::ObjectValue(*Impl::get_object(const_cast<object&>(o))));
+}
+
+JS::RootedValue Impl::value_impl::get_rooted_handle(Impl::value_impl const &v) const {
+  JS::RootedValue rooted_value(Impl::current_context(), Impl::get_jsval(v));
+  return rooted_value;
+}
+
+JS::RootedValue Impl::value_impl::get_mutable_handle(Impl::value_impl const &v) const {
+  JS::RootedValue rooted_value = Impl::get_rooted_handle(v);
+  return JS::MutableHandleValue(&rooted_value);
 }

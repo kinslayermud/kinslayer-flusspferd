@@ -32,14 +32,14 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/object.hpp"
 #include <boost/optional.hpp>
 #include <boost/utility/in_place_factory.hpp>
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 using namespace flusspferd;
 
 class property_iterator::impl {
 public:
   impl()
-    : id(JSVAL_VOID) 
+    : id(JS::UndefinedValue()) 
   {}
 
   root_value root_iterator;
@@ -95,7 +95,7 @@ void property_iterator::increment() {
         Impl::current_context(), Impl::get_object(p->iterator), &p->id))
     throw exception("Could not load / increment property iterator");
 
-  if (p->id != JSVAL_VOID) {
+  if (p->id != JS::UndefinedValue()) {
     if (!JS_IdToValue(
           Impl::current_context(), p->id, Impl::get_jsvalp(p->root_cache)))
       throw exception("Could not load / increment property iterator");

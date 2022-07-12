@@ -35,7 +35,7 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/init.hpp"
 #include <boost/noncopyable.hpp>
 #include <boost/lexical_cast.hpp>
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 using namespace flusspferd;
 
@@ -62,7 +62,9 @@ void exception::init(char const *what, std::string const &type)
 
   value &v = *p->exception_value;
 
-  if (JS_GetPendingException(ctx, Impl::get_jsvalp(v))) {
+  auto mutableRootedExceptionValue = Impl::get_mutable_handle(v);
+
+  if (JS_GetPendingException(ctx, mutableRootedExceptionValue)) {
     p->empty = false;
     JS_ClearPendingException(ctx);
   } else {
@@ -76,8 +78,9 @@ void exception::init(char const *what, std::string const &type)
 
 std::string exception::exception_message(char const *what) {
   std::string ret(what);
-  jsval v;
+  //jsval v;
   JSContext *const cx = Impl::current_context();
+  JS::RootedValue v(cx);
 
   if (JS_GetPendingException(cx, &v)) {
     value val = Impl::wrap_jsval(v);
@@ -112,9 +115,14 @@ exception::impl::~impl() {
 }
 
 void exception::throw_js_INTERNAL() {
+  /**
+
+    JSContext* cx, JS::HandleValue v,
+    JS::ExceptionStackBehavior behavior = JS::ExceptionStackBehavior::Capture);
+  **/
   JS_SetPendingException(
       Impl::current_context(),
-      Impl::get_jsval(p->exception_value ? *p->exception_value : value()));
+      Impl::get_rooted_handle(p->exception_value ? *p->exception_value : value()));
 }
 
 value exception::val() const {

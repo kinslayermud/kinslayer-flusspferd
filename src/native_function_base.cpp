@@ -34,7 +34,7 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/context.hpp"
 #include "flusspferd/spidermonkey/function.hpp"
 #include "flusspferd/current_context_scope.hpp"
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 using namespace flusspferd;
 
@@ -44,15 +44,11 @@ public:
   : arity(arity), name(name)
   {}
 
-  static JSBool call_helper(
+  static bool call_helper(
     JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
   static void finalize(JSContext *, JSObject *);
 
-#if JS_VERSION >= 180
   static void trace_op(JSTracer *trc, JSObject *obj);
-#else
-  static uint32 mark_op(JSContext *, JSObject *, void *);
-#endif
 
   unsigned arity;
   std::string name;
@@ -74,18 +70,11 @@ native_function_base::native_function_base(
 native_function_base::~native_function_base() { }
 
 
-#if JS_VERSION >= 180
 #define MARK_TRACE_OP ((JSMarkOp) &native_function_base::impl::trace_op)
-#else
-#define MARK_TRACE_OP (&native_function_base::impl::mark_op)
-#endif
 
 JSClass native_function_base::impl::function_priv_class = {
   "FunctionParent",
-  JSCLASS_HAS_PRIVATE
-#if JS_VERSION >= 180
-  | JSCLASS_MARK_IS_TRACE
-#endif
+  JSCLASS_HAS_PRIVATE | JSCLASS_MARK_IS_TRACE
   ,
   JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_PropertyStub,
   JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub,
@@ -128,14 +117,14 @@ function native_function_base::create_function() {
 
     JSObject *obj = Impl::get_object(*this);
 
-    JS_SetReservedSlot(ctx, obj, 0, OBJECT_TO_JSVAL(priv));
-    JS_SetReservedSlot(ctx, obj, 1, PRIVATE_TO_JSVAL(this));
+    JS_SetReservedSlot(obj, 0, JS::ObjectValue(*priv));
+    JS_SetReservedSlot(obj, 1, PRIVATE_TO_JSVAL(this));
   }
 
   return *static_cast<function *>(this);
 }
 
-JSBool native_function_base::impl::call_helper(
+bool native_function_base::impl::call_helper(
     JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
   FLUSSPFERD_CALLBACK_BEGIN {
@@ -166,7 +155,6 @@ JSBool native_function_base::impl::call_helper(
 }
 
 
-#if JS_VERSION >= 180
 void native_function_base::impl::trace_op(
     JSTracer *trc, JSObject *obj)
 {
@@ -178,21 +166,6 @@ void native_function_base::impl::trace_op(
   tracer tracer_(trc);
   self->trace(tracer_);
 }
-#else
-uint32 native_function_base::impl::mark_op(
-    JSContext *ctx, JSObject *obj, void *thing)
-{
-  current_context_scope scope(Impl::wrap_context(ctx));
-
-  native_function_base *self =
-    native_function_base::get_native(Impl::wrap_object(obj));
-
-  tracer trc(thing);
-  self->trace(trc);
-
-  return 0;
-}
-#endif
 
 void native_function_base::impl::finalize(JSContext *ctx, JSObject *priv) {
   current_context_scope scope(Impl::wrap_context(ctx));

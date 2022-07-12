@@ -31,40 +31,36 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/init.hpp"
 #include <boost/thread/tss.hpp>
 #include <boost/thread/once.hpp>
-#include <js/jsapi.h>
+#include <jsapi.h>
 #include <cassert>
-
-#ifndef FLUSSPFERD_MAX_BYTES
-#define FLUSSPFERD_MAX_BYTES 8L * 1024L * 1024L // 8 MB TODO: too much?
-#endif
+#include <js/Initialization.h>
+#include <js/Exception.h>
 
 using namespace flusspferd;
 
 static boost::thread_specific_ptr<init> p_instance;
-
-#if JS_VERSION >= 180
 static boost::once_flag runtime_created = BOOST_ONCE_INIT;
-#endif
 
 class init::impl {
 public:
   // we use a single JS_Runtime for each process!
   impl()
   {
-#if JS_VERSION >= 180
-    boost::call_once(runtime_created, JS_SetCStringsAreUTF8);
-#endif
-
-    if (!JS_CStringsAreUTF8())
-      throw std::runtime_error("UTF8 support in Spidermonkey required");
-
-    runtime = JS_NewRuntime( FLUSSPFERD_MAX_BYTES );
-    if (!runtime) {
-      throw std::runtime_error("Could not create Spidermonkey Runtime");
+    if (!JS_Init()) {
+      throw std::runtime_error("Unable to initialize Spidermonkey");
     }
+
+    //if (!JS_CStringsAreUTF8())
+    //  throw std::runtime_error("UTF8 support in Spidermonkey required");
+
+//    runtime = JS_NewRuntime( FLUSSPFERD_MAX_BYTES );
+//    if (!runtime) {
+//      throw std::runtime_error("Could not create Spidermonkey Runtime");
+//    }
   }
   ~impl() {
-    JS_DestroyRuntime(runtime);
+    JS_ShutDown();
+//    JS_DestroyRuntime(runtime);
   }
 
   JSRuntime *runtime;

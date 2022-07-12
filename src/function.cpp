@@ -34,7 +34,7 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/context.hpp"
 #include "flusspferd/current_context_scope.hpp"
 #include <boost/scoped_array.hpp>
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 using namespace flusspferd;
 
@@ -45,7 +45,9 @@ namespace {
     JSContext *ctx = Impl::current_context();
     JSObject *o = Impl::get_object(o_);
 
-    JSFunction *f = JS_ValueToFunction(ctx, OBJECT_TO_JSVAL(o));
+    auto functionObjectValue = JS::ObjectValue(*o);
+    JS::RootedValue rootedFunctionValue(Impl::current_context(), functionObjectValue);
+    JSFunction *f = JS_ValueToFunction(ctx, rootedFunctionValue);
 
     if (!f)
       throw exception("Could not convert object to function");

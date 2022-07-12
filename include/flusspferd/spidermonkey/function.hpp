@@ -27,7 +27,7 @@ THE SOFTWARE.
 #ifndef FLUSSPFERD_SPIDERMONKEY_FUNCTION_HPP
 #define FLUSSPFERD_SPIDERMONKEY_FUNCTION_HPP
 
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 namespace flusspferd {
 

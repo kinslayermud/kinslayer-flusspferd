@@ -33,7 +33,7 @@ THE SOFTWARE.
 #include "flusspferd/local_root_scope.hpp"
 #include "flusspferd/spidermonkey/object.hpp"
 #include "flusspferd/spidermonkey/init.hpp"
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 using namespace flusspferd;
 

@@ -27,7 +27,8 @@ THE SOFTWARE.
 #include "flusspferd/array.hpp"
 #include "flusspferd/exception.hpp"
 #include "flusspferd/spidermonkey/init.hpp"
-#include <js/jsapi.h>
+#include <jsapi.h>
+#include <js/Array.h>
 
 using namespace flusspferd;
 
@@ -42,37 +43,39 @@ array &array::operator=(object const &o) {
 }
 
 void array::check() {
+  bool result;
   if (is_null())
     throw exception("Object is null");
-  if (!JS_IsArrayObject(Impl::current_context(), get()))
+  //if (!JS_IsArrayObject(Impl::current_context(), get()))
+  JS::IsArrayObject(Impl::current_context(), JS::RootedObject(Impl::current_context(), get()), &result);
+  if (!result)
     throw exception("Object is not array");
 }
 
 std::size_t array::length() const {
-  jsuint length;
-  if (!JS_GetArrayLength(Impl::current_context(), get_const(), &length))
+  uint32_t length;
+  if (!JS::GetArrayLength(Impl::current_context(), JS::RootedObject(Impl::current_context(), get_const()), &length))
     throw exception("Could not get array length");
   return length;
 }
 
 void array::set_length(std::size_t length) {
-  if (!JS_SetArrayLength(Impl::current_context(), get(), length))
+  if (!JS::SetArrayLength(Impl::current_context(), JS::RootedObject(Impl::current_context(), get()), length))
     throw exception("Could not set array length");
 }
 
 value array::get_element(std::size_t index) const {
   value result;
-  if (!JS_GetElement(Impl::current_context(),
-                     get_const(), index,
-                     Impl::get_jsvalp(result)))
+  if (!JS_GetElement(Impl::current_context(), JS::RootedObject(Impl::current_context(), get_const()), index, Impl::get_mutable_handle(result)))
     throw exception("Could not get array element");
   return result;
 }
 
 void array::set_element(std::size_t index, value const &v_) {
   value v(v_);
-  if (!JS_SetElement(Impl::current_context(),
-                     get(), index, Impl::get_jsvalp(v)))
+  uint32_t index32 = index;
+  JS::RootedValue rooted(Impl::current_context(), Impl::get_jsval(v));
+  if (!JS_SetElement(Impl::current_context(), JS::RootedObject(Impl::current_context(), get()), index32, Impl::get_rooted_handle(v)))
     throw exception("Could not set array element");
 }
 

@@ -42,20 +42,16 @@ using namespace flusspferd;
 class native_object_base::impl {
 public:
   static void finalize(JSContext *ctx, JSObject *obj);
-  static JSBool call_helper(JSContext *, JSObject *, uintN, jsval *, jsval *);
+  static bool call_helper(JSContext *, JSObject *, uintN, jsval *, jsval *);
 
-#if JS_VERSION >= 180
   static void trace_op(JSTracer *trc, JSObject *obj);
-#else
-  static uint32 mark_op(JSContext *, JSObject *, void *);
-#endif
 
   template<property_mode>
-  static JSBool property_op(JSContext *, JSObject *, jsval, jsval *);
+  static bool property_op(JSContext *, JSObject *, jsval, jsval *);
 
-  static JSBool new_resolve(JSContext *, JSObject *, jsval, uintN, JSObject **);
+  static bool new_resolve(JSContext *, JSObject *, jsval, uintN, JSObject **);
 
-  static JSBool new_enumerate(JSContext *cx, JSObject *obj,
+  static bool new_enumerate(JSContext *cx, JSObject *obj,
     JSIterateOp enum_op, jsval *statep, jsid *idp);
 
 public:
@@ -65,17 +61,11 @@ public:
 
 static const unsigned int basic_flags =
   JSCLASS_HAS_PRIVATE
-  | JSCLASS_NEW_RESOLVE
-#if JS_VERSION >= 180
+  | JSCLASS_NEW_RESOLVE 
   | JSCLASS_MARK_IS_TRACE
-#endif
   ;
 
-#if JS_VERSION >= 180
 #define MARK_TRACE_OP ((JSMarkOp) &native_object_base::impl::trace_op)
-#else
-#define MARK_TRACE_OP (&native_object_base::impl::mark_op)
-#endif
 
 JSClass native_object_base::impl::native_object_class = {
   "NativeObject",
@@ -227,7 +217,7 @@ void native_object_base::impl::finalize(JSContext *ctx, JSObject *obj) {
   }
 }
 
-JSBool native_object_base::impl::call_helper(
+bool native_object_base::impl::call_helper(
     JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
   FLUSSPFERD_CALLBACK_BEGIN {
@@ -256,7 +246,7 @@ JSBool native_object_base::impl::call_helper(
 }
 
 template<native_object_base::property_mode mode>
-JSBool native_object_base::impl::property_op(
+bool native_object_base::impl::property_op(
     JSContext *ctx, JSObject *obj, jsval id, jsval *vp)
 {
   FLUSSPFERD_CALLBACK_BEGIN {
@@ -270,7 +260,7 @@ JSBool native_object_base::impl::property_op(
   } FLUSSPFERD_CALLBACK_END;
 }
 
-JSBool native_object_base::impl::new_resolve(
+bool native_object_base::impl::new_resolve(
     JSContext *ctx, JSObject *obj, jsval id, uintN sm_flags, JSObject **objp)
 {
   FLUSSPFERD_CALLBACK_BEGIN {
@@ -298,7 +288,7 @@ JSBool native_object_base::impl::new_resolve(
   } FLUSSPFERD_CALLBACK_END;
 }
 
-JSBool native_object_base::impl::new_enumerate(
+bool native_object_base::impl::new_enumerate(
     JSContext *ctx, JSObject *obj, JSIterateOp enum_op, jsval *statep, jsid *idp)
 {
   FLUSSPFERD_CALLBACK_BEGIN {
@@ -318,7 +308,7 @@ JSBool native_object_base::impl::new_enumerate(
         *statep = PRIVATE_TO_JSVAL(iter);
         if (idp)
           *idp = INT_TO_JSVAL(num);
-        return JS_TRUE;
+        return true;
       }
     case JSENUMERATE_NEXT:
       {
@@ -329,19 +319,18 @@ JSBool native_object_base::impl::new_enumerate(
         else {
           JS_ValueToId(ctx, Impl::get_jsval(id), idp);
         }
-        return JS_TRUE;
+        return true;
       }
     case JSENUMERATE_DESTROY:
       {
         iter = (boost::any*)JSVAL_TO_PRIVATE(*statep);
         delete iter;
-        return JS_TRUE;
+        return true;
       }
     }
   } FLUSSPFERD_CALLBACK_END;
 }
 
-#if JS_VERSION >= 180
 void native_object_base::impl::trace_op(
     JSTracer *trc, JSObject *obj)
 {
@@ -353,21 +342,6 @@ void native_object_base::impl::trace_op(
   tracer tracer_(trc);
   self.trace(tracer_);
 }
-#else
-uint32 native_object_base::impl::mark_op(
-    JSContext *ctx, JSObject *obj, void *thing)
-{
-  current_context_scope scope(Impl::wrap_context(ctx));
-
-  native_object_base &self =
-    native_object_base::get_native(Impl::wrap_object(obj));
-
-  tracer trc(thing);
-  self.trace(trc);
-
-  return 0;
-}
-#endif
 
 void native_object_base::property_op(
     property_mode, value const &, value &)

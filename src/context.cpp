@@ -37,10 +37,14 @@ THE SOFTWARE.
 #include <cstring>
 #include <cstdio>
 #include <iostream>
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 #ifndef FLUSSPFERD_STACKCHUNKSIZE
 #define FLUSSPFERD_STACKCHUNKSIZE 8192
+#endif
+
+#ifndef FLUSSPFERD_MAX_BYTES
+#define FLUSSPFERD_MAX_BYTES 8L * 1024L * 1024L // 8 MB TODO: too much?
 #endif
 
 using namespace flusspferd;
@@ -64,8 +68,7 @@ struct context::context_private {
 class context::impl {
 public:
   impl()
-    : context(JS_NewContext(Impl::get_runtime(),
-                            FLUSSPFERD_STACKCHUNKSIZE)),
+    : context(JS_NewContext(FLUSSPFERD_MAX_BYTES, Impl::get_runtime())),
       destroy(true)
   {
     if(!context)
@@ -78,7 +81,6 @@ public:
     options |= JSOPTION_DONT_REPORT_UNCAUGHT;
     options &= ~JSOPTION_XML;
 
-    JS_SetVersion(context, JSVersion(JS_VERSION));
     JS_SetOptions(context, options);
 
 #ifdef JS_THREADSAFE

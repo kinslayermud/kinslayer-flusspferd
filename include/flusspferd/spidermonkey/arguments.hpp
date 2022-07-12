@@ -28,7 +28,7 @@ THE SOFTWARE.
 #define FLUSSPFERD_SPIDERMONKEY_ARGUMETNS_HPP
 
 #include <vector>
-#include <js/jsapi.h>
+#include <jsapi.h>
 
 namespace flusspferd {
 
@@ -39,12 +39,12 @@ class value;
 namespace Impl {
 
 class arguments_impl {
-  std::vector<jsval> values; // values from the user are added here
+  std::vector<JS::Value> values; // values from the user are added here
   std::size_t n;
-  jsval *argv;
+  JS::Value *argv;
 
 public:
-  arguments_impl(std::size_t n, jsval *argv) : n(n), argv(argv) { }
+  arguments_impl(std::size_t n, JS::Value *argv) : n(n), argv(argv) { }
   arguments_impl(arguments_impl const &o);
 
 protected:
@@ -52,12 +52,12 @@ protected:
   arguments_impl(std::vector<value> const &o);
 
 protected:
-  jsval const *get() const { return argv; }
-  jsval *get() { return argv; }
+  JS::Value const *get() const { return argv; }
+  JS::Value *get() { return argv; }
   std::size_t size() const { return n; }
 
-  std::vector<jsval> &data() { return values; }
-  std::vector<jsval> const &data() const { return values; }
+  std::vector<JS::Value> &data() { return values; }
+  std::vector<JS::Value> const &data() const { return values; }
   void reset_argv();
 
   bool is_userprovided() const {
@@ -67,20 +67,20 @@ protected:
   arguments_impl &operator=(arguments_impl const &o);
 
   class iterator_impl {
-    jsval *iter;
+    JS::Value *iter;
   public:
-    iterator_impl(jsval *iter) : iter(iter) { }
+    iterator_impl(JS::Value *iter) : iter(iter) { }
     iterator_impl &operator++() {
       ++iter;
       return *this;
     }
-    jsval *operator*() const { return iter; }
+    JS::Value *operator*() const { return iter; }
   };
 
-  friend jsval *get_arguments(arguments_impl &);
+  friend JS::Value *get_arguments(arguments_impl &);
 };
 
-inline jsval *get_arguments(arguments_impl &arg) {
+inline JS::Value *get_arguments(arguments_impl &arg) {
   return arg.get();
 }
 
