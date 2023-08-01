@@ -113,12 +113,12 @@ void ecma_define_own_property(object o, string p, object desc) {
   else
     flags = flags | read_only_property;
 
-  boost::optional<function const &> getter_fn = boost::none,
-                                    setter_fn = boost::none;
+  boost::optional<std::shared_ptr<function>> getter_fn = boost::none,
+                                             setter_fn = boost::none;
   v = desc.get_property("getter");
   try {
     if (!v.is_undefined()) {
-      getter_fn = static_cast<function const &>(v.to_object());
+      getter_fn = std::make_shared<function>(static_cast<function>(v.to_object()));
 	}
   } catch (exception &e) {
     throw exception("getter must be a function", "TypeError");
@@ -127,7 +127,7 @@ void ecma_define_own_property(object o, string p, object desc) {
   v = desc.get_property("setter");
   try {
     if (!v.is_undefined()) {
-      setter_fn = static_cast<function const &>(v.to_object());
+      setter_fn = std::make_shared<function>(static_cast<function>(v.to_object()));
       flags = flags &~ read_only_property;
     }
   } catch (exception &e) {
@@ -159,8 +159,8 @@ void ecma_define_own_property(object o, string p, object desc) {
       p,
       property_attributes(
         flags,
-        boost::optional<function const &>(getter_fn),
-        boost::optional<function const &>(setter_fn)));
+        getter_fn,
+        setter_fn));
   } else {
     value val = desc.has_property("value")
               ? desc.get_property("value") 

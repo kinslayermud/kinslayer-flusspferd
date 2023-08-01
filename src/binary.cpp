@@ -144,7 +144,7 @@ void binary::augment_prototype(object &proto) {
       __LINE__);
 
   proto.define_property("values", value(),
-      property_attributes(dont_enumerate, values_fn));
+      property_attributes(dont_enumerate, std::make_shared<flusspferd::function>(values_fn)));
 
   static const char* js_pairs_iter =
     "function() {"
@@ -159,7 +159,7 @@ void binary::augment_prototype(object &proto) {
       evaluate(js_pairs_iter, strlen(js_pairs_iter)).get_object();
 
   proto.define_property("pairs", value(),
-      property_attributes(dont_enumerate, pairs_fn));
+      property_attributes(dont_enumerate, std::make_shared<flusspferd::function>(pairs_fn)));
 }
 
 bool binary::property_resolve(value const &id, unsigned /*flags*/) {

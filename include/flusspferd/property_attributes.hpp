@@ -28,6 +28,7 @@ THE SOFTWARE.
 #define FLUSSPFERD_PROPERTY_ATTRIBUTES
 
 #include <boost/optional.hpp>
+#include <memory>
 
 namespace flusspferd {
 
@@ -91,10 +92,10 @@ struct property_attributes {
   property_flag flags;
 
   /// The property's getter.
-  boost::optional<function const &> getter;
+  boost::optional<std::shared_ptr<function>> getter;
 
   /// The property's setter.
-  boost::optional<function const &> setter;
+  boost::optional<std::shared_ptr<function>> setter;
 
   /// Construct default attributes.
   property_attributes();
@@ -107,8 +108,8 @@ struct property_attributes {
    * @param setter The setter.
    */
   property_attributes(property_flag flags, 
-    boost::optional<function const &> getter = boost::none,
-    boost::optional<function const &> setter = boost::none);
+    boost::optional<std::shared_ptr<function>> getter = boost::none,
+    boost::optional<std::shared_ptr<function>> setter = boost::none);
 };
 
 }

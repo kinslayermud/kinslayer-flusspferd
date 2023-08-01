@@ -35,8 +35,8 @@ property_attributes::property_attributes()
 
 property_attributes::property_attributes(
   property_flag flags, 
-  boost::optional<function const &> getter,
-  boost::optional<function const &> setter
+  boost::optional<std::shared_ptr<function>> getter,
+  boost::optional<std::shared_ptr<function>> setter
 )
   : flags(flags),
     getter(getter),
