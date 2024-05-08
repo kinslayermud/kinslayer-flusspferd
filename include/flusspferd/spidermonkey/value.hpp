@@ -51,8 +51,8 @@ protected:
   jsval *getvalp() { return &val; }
 
   value_impl(jsval v) : val(v), ref(&val) { }
-  value_impl(jsval *v) : val(JSVAL_VOID), ref(v) { }
-  value_impl() : val(JSVAL_VOID), ref(&val) { }
+  value_impl(jsval *v) : val(JS::UndefinedValue()), ref(v) { }
+  value_impl() : val(JS::UndefinedValue()), ref(&val) { }
 
   friend jsval get_jsval(value_impl const &v);
   friend value_impl wrap_jsval(jsval v);
@@ -72,7 +72,7 @@ public:
       val = o.val;
       ref = &val;
     } else {
-      val = JSVAL_VOID;
+      val = JS::UndefinedValue();
       ref = o.ref;
     }
   }
