@@ -27,6 +27,7 @@ THE SOFTWARE.
 #ifndef FLUSSPFERD_VALUE_HPP
 #define FLUSSPFERD_VALUE_HPP
 
+#include "spidermonkey/adapter.hpp"
 #include "spidermonkey/value.hpp"
 #include <string>
 #include <boost/type_traits/is_same.hpp>
