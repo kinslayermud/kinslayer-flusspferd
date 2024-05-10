@@ -27,8 +27,10 @@ THE SOFTWARE.
 #ifndef FLUSSPFERD_SPIDERMONKEY_ADAPTER_HPP
 #define FLUSSPFERD_SPIDERMONKEY_ADAPTER_HPP
 
+#include <js/js/LegacyIntTypes.h>
 #include <js/jsapi.h>
 
 typedef JS::Value jsval;
+typedef JSUint32 jsuint;
 
 #endif /* FLUSSPFERD_SPIDERMONKEY_ADAPTER_HPP */
