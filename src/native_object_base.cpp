@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#include "flusspferd/spidermonkey/adapter.hpp"
+
 #include "flusspferd/native_object_base.hpp"
 #include "flusspferd/tracer.hpp"
 #include "flusspferd/object.hpp"
