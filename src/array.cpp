@@ -46,27 +46,28 @@ array &array::operator=(object const &o) {
 void array::check() {
   if (is_null())
     throw exception("Object is null");
-  if (!JS_IsArrayObject(Impl::current_context(), get()))
+  bool isOk;
+  if (!JS_IsArrayObject(Impl::current_context(), JS::RootedObject(Impl::current_context(), get()), &isOk))
     throw exception("Object is not array");
 }
 
 std::size_t array::length() const {
   jsuint length;
-  if (!JS_GetArrayLength(Impl::current_context(), get_const(), &length))
+  if (!JS_GetArrayLength(Impl::current_context(), JS::RootedObject(Impl::current_context(), get_const()), &length))
     throw exception("Could not get array length");
   return length;
 }
 
 void array::set_length(std::size_t length) {
-  if (!JS_SetArrayLength(Impl::current_context(), get(), length))
+  if (!JS_SetArrayLength(Impl::current_context(), JS::RootedObject(Impl::current_context(), get()), length))
     throw exception("Could not set array length");
 }
 
 value array::get_element(std::size_t index) const {
   value result;
   if (!JS_GetElement(Impl::current_context(),
-                     get_const(), index,
-                     Impl::get_jsvalp(result)))
+                     JS::RootedObject(Impl::current_context(), get_const()), index,
+                     JS::MutableHandleValue::fromMarkedLocation(Impl::get_jsvalp(result))))
     throw exception("Could not get array element");
   return result;
 }
@@ -74,7 +75,7 @@ value array::get_element(std::size_t index) const {
 void array::set_element(std::size_t index, value const &v_) {
   value v(v_);
   if (!JS_SetElement(Impl::current_context(),
-                     get(), index, Impl::get_jsvalp(v)))
+                     JS::RootedObject(Impl::current_context(), get()), index, JS::MutableHandleValue::fromMarkedLocation(Impl::get_jsvalp(v))))
     throw exception("Could not set array element");
 }
 
