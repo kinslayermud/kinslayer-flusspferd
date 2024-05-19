@@ -30,6 +30,9 @@ THE SOFTWARE.
 #include <js/js/LegacyIntTypes.h>
 #include <js/jsapi.h>
 
+#define INT_TO_JSVAL JS::Int32Value
+#define INT_FITS_IN_JSVAL  true
+
 typedef JS::Value jsval;
 typedef JSUint32 jsuint;
 typedef bool JSBool;
