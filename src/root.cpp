@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#include "flusspferd/spidermonkey/adapter.hpp"
+
 #include "flusspferd/root.hpp"
 #include "flusspferd/init.hpp"
 #include "flusspferd/exception.hpp"
@@ -49,7 +51,7 @@ root<T>::root(T const &o)
     Impl::current_context(),
     T::get_gcptr());
 
-  if (status == JS_FALSE) {
+  if (status == false) {
     throw exception("Cannot root Javascript value");
   }
 }
