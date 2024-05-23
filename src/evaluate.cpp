@@ -112,17 +112,20 @@ value flusspferd::execute(char const *filename, object const &scope_) {
 
   value result;
 
-  JSBool ok = JS_ExecuteScript(cx, scope, script, Impl::get_jsvalp(result));
+  JS::AutoObjectVector scopeVector(cx);
+  scopeVector.append(scope);
+
+  JSBool ok = JS_ExecuteScript(cx, scopeVector, JS::HandleScript::fromMarkedLocation(&script), JS::MutableHandleValue::fromMarkedLocation(Impl::get_jsvalp(result))); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ExecuteScript
 
   if (!ok) {
     exception e("Script execution failed");
     if (!e.empty()) {
-      JS_DestroyScript(cx, script);
+      //JS_DestroyScript(cx, script); // Ref:https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_DestroyScript
       throw e;
     }
   }
 
-  JS_DestroyScript(cx, script);
+  //JS_DestroyScript(cx, script); // Ref:https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_DestroyScript
 
   return result;
 }
