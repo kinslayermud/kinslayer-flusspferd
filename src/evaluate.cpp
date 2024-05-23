@@ -145,12 +145,12 @@ bool flusspferd::is_compilable(char const *source, std::size_t length,
   assert(source);
   JSContext *cx = Impl::current_context();
 
-  JSObject *scope = Impl::get_object(scope_);
+  JSObject* scope = Impl::get_object(scope_);
   if (!scope) {
     scope = Impl::get_object(flusspferd::global());
   }
 
-  return JS_BufferIsCompilableUnit(cx, scope, source, length);
+  return JS_BufferIsCompilableUnit(cx, JS::HandleObject::fromMarkedLocation(&scope), source, length);
 }
 
 bool flusspferd::is_compilable(char const *source, object const &scope) {
