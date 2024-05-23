@@ -94,8 +94,8 @@ value flusspferd::execute(char const *filename, object const &scope_) {
   if (!scope)
     scope = Impl::get_object(flusspferd::global());
 
-  int oldopts = JS_GetOptions(cx);
-  JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO );
+  //int oldopts = JS_GetOptions(cx);  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetOptions
+  //JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO );
   JSScript *script = JS_CompileUCScript(
     cx, scope,
     (char16_t*)module_text.data(), module_text.length(), // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
@@ -104,11 +104,11 @@ value flusspferd::execute(char const *filename, object const &scope_) {
 
   if (!script) {
     exception e("Could not compile script");
-    JS_SetOptions(cx, oldopts);
+    //JS_SetOptions(cx, oldopts);
     throw e;
   }
 
-  JS_SetOptions(cx, oldopts);
+  //JS_SetOptions(cx, oldopts);
 
   value result;
 
