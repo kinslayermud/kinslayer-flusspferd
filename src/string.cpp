@@ -54,7 +54,7 @@ Impl::string_impl::string_impl(char const *s, std::size_t n)
 }
 
 Impl::string_impl::string_impl(js_char16_t const *s, std::size_t n)
-  : str(JS_NewUCStringCopyN(Impl::current_context(), (const jschar*)s, n))
+  : str(JS_NewUCStringCopyN(Impl::current_context(), (const char16_t *)s, n)) // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
 {
   if (!str)
     throw exception("Could not create string");
@@ -115,7 +115,7 @@ std::basic_string<flusspferd::js_char16_t> string::to_utf16_string() const {
   JSString *str = get_string(*this);
   assert(str);
   std::size_t len = JS_GetStringLength(str);
-  jschar *text = JS_GetStringChars(str);
+  char16_t *text = JS_GetStringChars(str); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
   return std::basic_string<js_char16_t>((js_char16_t*)text, len);
 }
 
