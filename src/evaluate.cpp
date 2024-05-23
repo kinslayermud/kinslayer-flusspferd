@@ -58,8 +58,15 @@ value flusspferd::evaluate_in_scope(
   JSContext *cx = Impl::current_context();
 
   jsval rval;
-  JSBool ok = JS_EvaluateScript(cx, Impl::get_object(scope),
-                                source, n, file, line, &rval);
+  JS::AutoObjectVector scopeChain(cx);
+  scopeChain.append(Impl::get_object(scope));
+  JS::CompileOptions options(cx);
+  options.setLine(line);
+  options.setFile(file);
+
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Evaluate   we cast safely char -> char16_t
+  JSBool ok = JS::Evaluate(cx, scopeChain, options, (char16_t*)source, n, JS::MutableHandleValue::fromMarkedLocation(&rval));
+
   if(!ok) {
     exception e("Could not evaluate script");
     if (!e.empty())
@@ -96,13 +103,18 @@ value flusspferd::execute(char const *filename, object const &scope_) {
 
   //int oldopts = JS_GetOptions(cx);  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetOptions
   //JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO );
-  JSScript *script = JS_CompileUCScript(
-    cx, scope,
+  JS::CompileOptions options(cx);
+  options.setFile(filename);
+
+  JSScript *script;
+  bool success  = JS_CompileUCScript(
+    cx, 
     (char16_t*)module_text.data(), module_text.length(), // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
-    filename, 1ul
+    options, 
+    JS::MutableHandleScript::fromMarkedLocation(&script)
   );
 
-  if (!script) {
+  if (!success || !script) {
     exception e("Could not compile script");
     //JS_SetOptions(cx, oldopts);
     throw e;
