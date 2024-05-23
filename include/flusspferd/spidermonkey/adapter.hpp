@@ -30,6 +30,8 @@ THE SOFTWARE.
 #include <js/js/LegacyIntTypes.h>
 #include <js/jsapi.h>
 
+#define JS_VERSION 200  // Something higher than 180 does the work
+
 #define INT_TO_JSVAL JS::Int32Value
 #define INT_FITS_IN_JSVAL  true
 
