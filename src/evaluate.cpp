@@ -98,7 +98,7 @@ value flusspferd::execute(char const *filename, object const &scope_) {
   JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO );
   JSScript *script = JS_CompileUCScript(
     cx, scope,
-    (jschar*)module_text.data(), module_text.length(),
+    (char16_t*)module_text.data(), module_text.length(), // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
     filename, 1ul
   );
 
