@@ -40,8 +40,9 @@ THE SOFTWARE.
 using namespace flusspferd;
 
 object flusspferd::create_object(object const &proto) {
-  JSObject *o = JS_NewObject(
-      Impl::current_context(), 0, Impl::get_object(proto), 0);
+  JSObject *protoObj = Impl::get_object(proto);
+  JSObject *o = JS_NewObjectWithGivenProto(
+      Impl::current_context(), 0, JS::MutableHandleObject::fromMarkedLocation(&protoObj)); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewObject
 
   if (!o)
     throw exception("Could not create object");
@@ -50,7 +51,7 @@ object flusspferd::create_object(object const &proto) {
 }
 
 array flusspferd::create_array(unsigned length) {
-  JSObject *o = JS_NewArrayObject(Impl::current_context(), length, 0);
+  JSObject *o = JS_NewArrayObject(Impl::current_context(), length); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewArrayObject
   if (!o)
     throw exception("Could not create array");
 
@@ -83,6 +84,17 @@ function flusspferd::create_function(
       ++it)
     argnames_c.push_back(it->c_str());
 
+ /* 
+  *
+   Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Compile
+	      
+  JS_CompileScript(JSContext* cx, const char* ascii, size_t length,
+		                   const JS::CompileOptions& options,
+				                    JS::MutableHandleScript script); 
+						    
+						    
+						    */
+
   JSFunction *fun =
       JS_CompileUCFunction(
         cx,
@@ -90,7 +102,7 @@ function flusspferd::create_function(
         name.c_str(),
         n_args,
         &argnames_c[0],
-        (const jschar*)body.data(),
+        (const char16_t*)body.data(), // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
         body.length(),
         file.c_str(),
         line);
