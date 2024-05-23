@@ -23,6 +23,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+#include "flusspferd/spidermonkey/adapter.hpp"
 
 #include "flusspferd/function.hpp"
 #include "flusspferd/value.hpp"
@@ -44,9 +45,9 @@ namespace {
   Impl::function_impl get_function(Impl::object_impl o_) {
     JSContext *ctx = Impl::current_context();
     JSObject *o = Impl::get_object(o_);
+    JS::Value oValue = JS::ObjectValue(*o);
 
-    JSFunction *f = JS_ValueToFunction(ctx, OBJECT_TO_JSVAL(o));
-
+    JSFunction *f = JS_ValueToFunction(ctx, JS::HandleValue::fromMarkedLocation(&oValue)); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/OBJECT_TO_JSVAL
     if (!f)
       throw exception("Could not convert object to function");
 
