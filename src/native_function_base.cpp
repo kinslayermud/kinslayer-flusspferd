@@ -115,7 +115,8 @@ function native_function_base::create_function() {
     if (!priv)
       throw exception("Could not create native function");
 
-    JS_SetPrivate(ctx, priv, this);
+    //JS_SetPrivate(ctx, priv, this); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetPrivate
+    JS_SetPrivate(priv, this);
 
     fun = JS_NewFunction(
         ctx, &impl::call_helper,
