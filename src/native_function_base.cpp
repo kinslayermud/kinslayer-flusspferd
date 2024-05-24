@@ -128,7 +128,8 @@ function native_function_base::create_function() {
 
     JSObject *obj = Impl::get_object(*this);
 
-    JS_SetReservedSlot(ctx, obj, 0, OBJECT_TO_JSVAL(priv));
+    //JS_SetReservedSlot(ctx, obj, 0, OBJECT_TO_JSVAL(priv)); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::ObjectValue
+    JS_SetReservedSlot(ctx, obj, 0, JS::ObjectValue(*priv));
     JS_SetReservedSlot(ctx, obj, 1, PRIVATE_TO_JSVAL(this));
   }
 
@@ -141,7 +142,10 @@ JSBool native_function_base::impl::call_helper(
   FLUSSPFERD_CALLBACK_BEGIN {
     current_context_scope scope(Impl::wrap_context(ctx));
 
-    JSObject *function = JSVAL_TO_OBJECT(argv[-2]);
+    JSObject *function;
+    JS_ValueToObject(ctx, JS::HandleValue::fromMarkedLocation(&argv[-2]), JS::MutableHandleObject::fromMarkedLocation(function)));
+
+    //JSObject *function = JSVAL_TO_OBJECT(argv[-2]); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ValueToObject
 
     jsval self_val;
 
@@ -226,7 +230,9 @@ native_function_base *native_function_base::get_native(object const &o_) {
   if (!JS_GetReservedSlot(ctx, p, 0, &p_val))
     throw exception("Could not get native function pointer");
 
-  p = JSVAL_TO_OBJECT(p_val);
+  JS_ValueToObject(ctx, JS::HandleValue::fromMarkedLocation(&p_val), &p));
+
+  //p = JSVAL_TO_OBJECT(p_val); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ValueToObject
 
   if (!p)
     throw exception("Could not get native function pointer");
