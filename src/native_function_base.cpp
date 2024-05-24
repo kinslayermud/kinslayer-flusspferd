@@ -207,7 +207,8 @@ void native_function_base::impl::finalize(JSContext *ctx, JSObject *priv) {
   current_context_scope scope(Impl::wrap_context(ctx));
 
   native_function_base *self =
-    (native_function_base *) JS_GetInstancePrivate(ctx, priv, &function_priv_class, 0);
+    //(native_function_base *) JS_GetInstancePrivate(ctx, priv, &function_priv_class, 0); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetInstancePrivate
+    (native_function_base *) JS_GetInstancePrivate(ctx, JS::HandleObject::fromMarkedLocation(&priv), &function_priv_class, 0);
 
   if (!self)
     throw exception("Could not finalize native function");
@@ -222,7 +223,8 @@ native_function_base *native_function_base::get_native(object const &o_) {
   JSObject *p = Impl::get_object(o);
 
   native_function_base *self =
-    (native_function_base *) JS_GetInstancePrivate(ctx, p, &impl::function_priv_class, 0);
+    //(native_function_base *) JS_GetInstancePrivate(ctx, p, &impl::function_priv_class, 0); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetInstancePrivate 
+    (native_function_base *) JS_GetInstancePrivate(ctx, JS::HandleObject::fromMarkedLocation(&p), &impl::function_priv_class, 0);
 
   if (self)
     return self;
@@ -245,7 +247,8 @@ native_function_base *native_function_base::get_native(object const &o_) {
     throw exception("Could not get native function pointer");
 
   self =
-    (native_function_base *) JS_GetInstancePrivate(ctx, p, &impl::function_priv_class, 0);
+    //(native_function_base *) JS_GetInstancePrivate(ctx, p, &impl::function_priv_class, 0); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetInstancePrivate
+    (native_function_base *) JS_GetInstancePrivate(ctx, JS_GetInstancePrivate(ctx, JS::HandleObject::fromMarkedLocation(&p), &impl::function_priv_class, 0);
 
   if (!self)
     throw exception("Could not get native function pointer");
