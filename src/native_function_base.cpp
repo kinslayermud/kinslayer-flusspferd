@@ -84,7 +84,7 @@ JSClass native_function_base::impl::function_priv_class = {
   "FunctionParent",
   JSCLASS_HAS_PRIVATE
 #if JS_VERSION >= 180
-  | JSCLASS_MARK_IS_TRACE
+  //| JSCLASS_MARK_IS_TRACE // Ref: https://bugzilla.mozilla.org/attachment.cgi?id=516449&action=diff and https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass.flags
 #endif
   ,
   JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_PropertyStub,
