@@ -154,7 +154,7 @@ JSBool native_function_base::impl::call_helper(
       throw exception("Could not call native function");
 
 
-    // native_function_base *self = (native_function_base *)JSVAL_TO_PRIVATE(self_val); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/PRIVATE_TO_JSVAL
+    // native_function_base *self = (native_function_base *)JSVAL_TO_PRIVATE(self_val); // https://bug952650.bmoattachments.org/attachment.cgi?id=8413511
     native_function_base *self = (native_function_base *) self_val.toPrivate();
 
     if (!self)
