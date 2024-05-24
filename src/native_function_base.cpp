@@ -129,9 +129,10 @@ function native_function_base::create_function() {
 
     JSObject *obj = Impl::get_object(*this);
 
-    //JS_SetReservedSlot(ctx, obj, 0, OBJECT_TO_JSVAL(priv)); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::ObjectValue
-    JS_SetReservedSlot(ctx, obj, 0, JS::ObjectValue(*priv));
-    JS_SetReservedSlot(ctx, obj, 1, PRIVATE_TO_JSVAL(this));
+    //JS_SetReservedSlot(ctx, obj, 0, OBJECT_TO_JSVAL(priv)); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::ObjectValue && https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetReservedSlot
+    JS_SetReservedSlot(obj, 0, JS::ObjectValue(*priv));
+    //JS_SetReservedSlot(ctx, obj, 1, PRIVATE_TO_JSVAL(this)); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/PRIVATE_TO_JSVAL && https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetReservedSlot
+    JS_SetReservedSlot(obj, 1, JS::PrivateValue(this));
   }
 
   return *static_cast<function *>(this);
@@ -150,7 +151,9 @@ JSBool native_function_base::impl::call_helper(
 
     jsval self_val;
 
-    if (!JS_GetReservedSlot(ctx, function, 1, &self_val))
+    //if (!JS_GetReservedSlot(ctx, function, 1, &self_val)) // https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetReservedSlot
+    self_val = JS_GetReservedSlot(function, 1);
+    if (self_val == null)
       throw exception("Could not call native function");
 
 
@@ -229,10 +232,12 @@ native_function_base *native_function_base::get_native(object const &o_) {
 
   jsval p_val;
 
-  if (!JS_GetReservedSlot(ctx, p, 0, &p_val))
+  //if (!JS_GetReservedSlot(ctx, p, 0, &p_val)) // Ref:: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetReservedSlot
+  p_val = JS_GetReservedSlot(p, 0);
+  if (p_val == null)
     throw exception("Could not get native function pointer");
 
-  JS_ValueToObject(ctx, JS::HandleValue::fromMarkedLocation(&p_val), &p));
+  JS_ValueToObject(ctx, JS::HandleValue::fromMarkedLocation(&p_val), JS::MutableHandleObject::fromMarkedLocation(&p));
 
   //p = JSVAL_TO_OBJECT(p_val); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ValueToObject
 
