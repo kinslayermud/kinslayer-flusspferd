@@ -141,15 +141,15 @@ public:
 #define FLUSSPFERD_CALLBACK_END \
     catch (::flusspferd::exception &e) { \
       e.throw_js_INTERNAL(); \
-      return JS_FALSE; \
+      return false; \
     } catch (::std::exception &e) { \
       ::flusspferd::exception x(e.what()); \
       x.throw_js_INTERNAL(); \
-      return JS_FALSE; \
+      return false; \
     } catch (::flusspferd::js_quit&) {\
-      return JS_FALSE; \
+      return false; \
     } \
-    return JS_TRUE
+    return true 
 
 #endif
 
