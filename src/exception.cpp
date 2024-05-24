@@ -62,7 +62,7 @@ void exception::init(char const *what, std::string const &type)
 
   value &v = *p->exception_value;
 
-  if (JS_GetPendingException(ctx, Impl::get_jsvalp(v))) {
+  if (JS_GetPendingException(ctx, JS::MutableHandleValue::fromMarkedLocation(Impl::get_jsvalp(v)))) {
     p->empty = false;
     JS_ClearPendingException(ctx);
   } else {
@@ -79,7 +79,7 @@ std::string exception::exception_message(char const *what) {
   jsval v;
   JSContext *const cx = Impl::current_context();
 
-  if (JS_GetPendingException(cx, &v)) {
+  if (JS_GetPendingException(cx, JS::MutableHandleValue::fromMarkedLocation(&v))) {
     value val = Impl::wrap_jsval(v);
     ret += ": exception `" + val.to_std_string() + '\'';
     if (val.is_object()) {
@@ -112,9 +112,10 @@ exception::impl::~impl() {
 }
 
 void exception::throw_js_INTERNAL() {
+  jsval val = Impl::get_jsval(p->exception_value ? *p->exception_value : value());
   JS_SetPendingException(
       Impl::current_context(),
-      Impl::get_jsval(p->exception_value ? *p->exception_value : value()));
+      JS::MutableHandleValue::fromMarkedLocation(&val));
 }
 
 value exception::val() const {
