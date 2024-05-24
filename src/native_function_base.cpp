@@ -153,7 +153,7 @@ JSBool native_function_base::impl::call_helper(
 
     //if (!JS_GetReservedSlot(ctx, function, 1, &self_val)) // https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetReservedSlot
     self_val = JS_GetReservedSlot(function, 1);
-    if (self_val == null)
+    if (self_val.isNull()) // https://bug952650.bmoattachments.org/attachment.cgi?id=8413485
       throw exception("Could not call native function");
 
 
@@ -234,7 +234,7 @@ native_function_base *native_function_base::get_native(object const &o_) {
 
   //if (!JS_GetReservedSlot(ctx, p, 0, &p_val)) // Ref:: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetReservedSlot
   p_val = JS_GetReservedSlot(p, 0);
-  if (p_val == null)
+  if (p_val.isNull()) // Ref: https://bug952650.bmoattachments.org/attachment.cgi?id=8413485
     throw exception("Could not get native function pointer");
 
   JS_ValueToObject(ctx, JS::HandleValue::fromMarkedLocation(&p_val), JS::MutableHandleObject::fromMarkedLocation(&p));
