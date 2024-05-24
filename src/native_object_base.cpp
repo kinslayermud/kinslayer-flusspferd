@@ -320,7 +320,7 @@ JSBool native_object_base::impl::new_enumerate(
         *statep = PRIVATE_TO_JSVAL(iter);
         if (idp)
           *idp = INT_TO_JSVAL(num);
-        return JS_TRUE;
+        return true;
       }
     case JSENUMERATE_NEXT:
       {
@@ -331,13 +331,13 @@ JSBool native_object_base::impl::new_enumerate(
         else {
           JS_ValueToId(ctx, Impl::get_jsval(id), idp);
         }
-        return JS_TRUE;
+        return true;
       }
     case JSENUMERATE_DESTROY:
       {
         iter = (boost::any*)JSVAL_TO_PRIVATE(*statep);
         delete iter;
-        return JS_TRUE;
+        return true;
       }
     }
   } FLUSSPFERD_CALLBACK_END;
