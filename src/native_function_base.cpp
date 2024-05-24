@@ -144,7 +144,7 @@ JSBool native_function_base::impl::call_helper(
     current_context_scope scope(Impl::wrap_context(ctx));
 
     JSObject *function;
-    JS_ValueToObject(ctx, JS::HandleValue::fromMarkedLocation(&argv[-2]), JS::MutableHandleObject::fromMarkedLocation(function)));
+    JS_ValueToObject(ctx, JS::HandleValue::fromMarkedLocation(&argv[-2]), JS::MutableHandleObject::fromMarkedLocation(&function));
 
     //JSObject *function = JSVAL_TO_OBJECT(argv[-2]); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ValueToObject
 
@@ -153,8 +153,9 @@ JSBool native_function_base::impl::call_helper(
     if (!JS_GetReservedSlot(ctx, function, 1, &self_val))
       throw exception("Could not call native function");
 
-    native_function_base *self = 
-      (native_function_base *) JSVAL_TO_PRIVATE(self_val);
+
+    // native_function_base *self = (native_function_base *)JSVAL_TO_PRIVATE(self_val); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/PRIVATE_TO_JSVAL
+    native_function_base *self = (native_function_base *) self_val.toPrivate();
 
     if (!self)
       throw exception("Could not call native function");
