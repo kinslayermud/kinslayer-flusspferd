@@ -41,7 +41,8 @@ using namespace flusspferd;
 class property_iterator::impl {
 public:
   impl()
-    : id(JSVAL_VOID) 
+    //: id(JSVAL_VOID) 
+    : id(JS::UndefinedValue().toInt32()) // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Value#jsval
   {}
 
   root_value root_iterator;
@@ -97,7 +98,10 @@ void property_iterator::increment() {
         Impl::current_context(), Impl::get_object(p->iterator), &p->id))
     throw exception("Could not load / increment property iterator");
 
-  if (p->id != JSVAL_VOID) {
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_IdToValue
+  jsval idVal;
+  JS_IdToValue(Impl::current_context(), p->id, JS::MutableHandleValue::fromMarkedLocation(&idVal));
+  if (idVal != JS::UndefinedValue()) {
     if (!JS_IdToValue(
           Impl::current_context(), p->id, Impl::get_jsvalp(p->root_cache)))
       throw exception("Could not load / increment property iterator");
