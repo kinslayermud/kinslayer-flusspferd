@@ -122,7 +122,7 @@ bool value::to_boolean() const {
   JSBool result;
   if (!JS_ValueToBoolean(Impl::current_context(), get(), &result))
     throw exception("Could not convert value to boolean");
-  return result != JS_FALSE;
+  return result != false;
 }
 
 object value::to_object() const {
