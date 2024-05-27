@@ -227,7 +227,9 @@ bool object::has_own_property(value const &id) const {
 void object::delete_property(char const *name) {
   if (is_null())
     throw exception("Could not delete property (object is null)");
-  if (!JS_DeleteProperty(Impl::current_context(), get(), name))
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_DeleteProperty
+  JSObject *obj = get();
+  if (!JS_DeleteProperty(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj), name))
     throw exception("Could not delete property");
 }
 
@@ -240,9 +242,11 @@ void object::delete_property(value const &id) {
     throw exception("Could not delete property (object is null)");
   local_root_scope scope;
   string name = id.to_string();
-  jsval dummy;
-  if (!JS_DeleteUCProperty2(Impl::current_context(), get(),
-                            (char16_t*)name.data(), name.length(), &dummy))
+  JS::ObjectOpResult dummy;
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_DeleteProperty
+  JSObject *obj = get();
+  if (!JS_DeleteUCProperty(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj),
+                           (char16_t*)name.data(), name.length(), dummy))
     throw exception("Could not delete property");
 }
 
