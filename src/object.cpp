@@ -395,7 +395,9 @@ bool object::is_generator() const {
 
   // There seems to be no way with the SM API to get the standard Generator
   // JSClass back. SO make a best effort guess
-  JSClass *our_class = JS_GET_CLASS(ctx, get_const());
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GET_CLASS
+  //JSClass *our_class = JS_GET_CLASS(ctx, get_const());
+  const JSClass *our_class = JS_GetClass(get_const());
 
   return strcmp(our_class->name, "Generator") == 0
       && get_property("next").is_function();
