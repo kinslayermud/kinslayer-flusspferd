@@ -44,7 +44,7 @@ THE SOFTWARE.
 using namespace flusspferd;
 
 value::~value() { }
-value::value() : Impl::value_impl(JSVAL_VOID) { }
+value::value() : Impl::value_impl(JS::UndefinedValue()) { }
 
 bool value::is_null() const { return JSVAL_IS_NULL(get()); }
 bool value::is_undefined() const { return JSVAL_IS_VOID(get()); }
@@ -147,12 +147,12 @@ string value::to_source() const {
 }
 
 void value::bind(value o) {
-  setval(JSVAL_VOID);
+  setval(JS::UndefinedValue());
   setp(o.getp());
 }
 
 void value::unbind() {
-  setval(JSVAL_VOID);
+  setval(JS::UndefinedValue());
   setp(getvalp());
 }
 
