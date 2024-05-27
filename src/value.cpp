@@ -166,14 +166,16 @@ Impl::value_impl Impl::value_impl::from_double(double num) {
   return result;
 }
 
+// Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Value#jsval
+
 Impl::value_impl Impl::value_impl::from_boolean(bool x) {
-  return wrap_jsval(BOOLEAN_TO_JSVAL(x));
+  return wrap_jsval(JS::BooleanValue(x));
 }
 
 Impl::value_impl Impl::value_impl::from_string(string const &s) {
-  return wrap_jsval(STRING_TO_JSVAL(Impl::get_string(const_cast<string&>(s))));
+  return wrap_jsval(JS::StringValue(Impl::get_string(const_cast<string&>(s))));
 }
 
 Impl::value_impl Impl::value_impl::from_object(object const &o) {
-  return wrap_jsval(OBJECT_TO_JSVAL(Impl::get_object(const_cast<object&>(o))));
+  return wrap_jsval(JS::ObjectValue(Impl::get_object(const_cast<object&>(o))));
 }
