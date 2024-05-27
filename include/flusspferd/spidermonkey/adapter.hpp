@@ -38,6 +38,6 @@ THE SOFTWARE.
 typedef JS::Value jsval;
 typedef JSUint32 jsuint;
 typedef JSUint32 uintN;
-typedef bool JSBool;
+typedef double jsdouble;
 
 #endif /* FLUSSPFERD_SPIDERMONKEY_ADAPTER_HPP */
