@@ -53,8 +53,8 @@ object::~object() { }
 void object::seal(bool deep) {
   if (is_null())
     throw exception("Could not seal object (object is null)");
-  if (!JS_SealObject(Impl::current_context(), get(), deep))
-    throw exception("Could not seal object");
+  //if (!JS_SealObject(Impl::current_context(), get(), deep)) // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SealObject && https://bugzilla.mozilla.org/show_bug.cgi?id=492849
+  //  throw exception("Could not seal object");
 }
 
 object object::parent() {
