@@ -383,7 +383,11 @@ value object::call(arguments const &arg) {
 bool object::is_array() const {
   if (is_null())
     return false;
-  return JS_IsArrayObject(Impl::current_context(), get_const());
+
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_IsArrayObject
+  JSObject* obj = get_const();
+  bool isArray;
+  return JS_IsArrayObject(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj), &isArray);
 }
 
 bool object::is_generator() const {
