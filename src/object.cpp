@@ -84,7 +84,11 @@ void object::set_parent(object const &o) {
 void object::set_prototype(object const &o) {
   if (is_null())
     throw exception("Could not set object prototype (object is null)");
-  if (!JS_SetPrototype(Impl::current_context(), get(), o.get_const()))
+
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetPrototype
+  JSObject* obj = get();
+  JSObject* proto = o.get_const();
+  if (!JS_SetPrototype(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj), JS::HandleObject::fromMarkedLocation(&proto)))
     throw exception("Could not set object prototype");
 }
 
