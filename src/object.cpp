@@ -158,7 +158,9 @@ bool object::has_property(char const *name) const {
   if (is_null())
     throw exception("Could not check property (object is null)");
   JSBool foundp;
-  if (!JS_HasProperty(Impl::current_context(), get_const(), name,
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_HasProperty
+  JSObject* obj = get_const();
+  if (!JS_HasProperty(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj), name,
                       &foundp))
     throw exception("Could not check property");
   return foundp;
@@ -174,7 +176,9 @@ bool object::has_property(value const &id) const {
   local_root_scope scope;
   string name = id.to_string();
   JSBool foundp;
-  if (!JS_HasUCProperty(Impl::current_context(), get_const(),
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetProperty
+  JSObject* obj = get_const();
+  if (!JS_HasUCProperty(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj),
                         (char16_t*)name.data(), name.length(),
                         &foundp))
     throw exception("Could not check property");
