@@ -104,7 +104,7 @@ value object::set_property(value const &id, value const &v_) {
   value v = v_;
   string name = id.to_string();
   if (!JS_SetUCProperty(Impl::current_context(), get(),
-                        (jschar*)name.data(), name.length(),
+                        (char16_t*)name.data(), name.length(),
                         Impl::get_jsvalp(v)))
     throw exception("Could not set property");
   return v;
@@ -131,7 +131,7 @@ value object::get_property(value const &id) const {
   local_root_scope scope;
   string name = id.to_string();
   if (!JS_GetUCProperty(Impl::current_context(), get_const(),
-                        (jschar*)name.data(), name.length(),
+                        (char16_t*)name.data(), name.length(),
                         Impl::get_jsvalp(result)))
     throw exception("Could not get property");
   return result;
@@ -158,7 +158,7 @@ bool object::has_property(value const &id) const {
   string name = id.to_string();
   JSBool foundp;
   if (!JS_HasUCProperty(Impl::current_context(), get_const(),
-                        (jschar*)name.data(), name.length(),
+                        (char16_t*)name.data(), name.length(),
                         &foundp))
     throw exception("Could not check property");
   return foundp;
@@ -184,7 +184,7 @@ bool object::has_own_property(value const &id) const {
 #if JS_VERSION >= 180
   string name = id.to_string();
   if (!JS_AlreadyHasOwnUCProperty(Impl::current_context(), get_const(),
-                                  (jschar*)name.data(), name.length(), &has))
+                                  (char16_t*)name.data(), name.length(), &has))
 #else
   JSObject *obj = get_const();
   jsval argv[] = { Impl::get_jsval(id) };
@@ -219,7 +219,7 @@ void object::delete_property(value const &id) {
   string name = id.to_string();
   jsval dummy;
   if (!JS_DeleteUCProperty2(Impl::current_context(), get(),
-                            (jschar*)name.data(), name.length(), &dummy))
+                            (char16_t*)name.data(), name.length(), &dummy))
     throw exception("Could not delete property");
 }
 
@@ -269,7 +269,7 @@ void object::define_property(
 
   if (!JS_DefineUCProperty(Impl::current_context(),
                            get_const(),
-                           (jschar*)name.data(), name.length(),
+                           (char16_t*)name.data(), name.length(),
                            Impl::get_jsval(v),
                            *(JSPropertyOp*) &getter_o,
                            *(JSPropertyOp*) &setter_o,
@@ -390,7 +390,7 @@ bool object::get_property_attributes(
   attrs.getter = boost::none;
   attrs.setter = boost::none;
   JSBool success = JS_GetUCPropertyAttrsGetterAndSetter(
-          Impl::current_context(), get_const(), (jschar*)name.data(), name.length(),
+          Impl::current_context(), get_const(), (char16_t*)name.data(), name.length(),
           &sm_flags, &found,
           (JSPropertyOp*)&getter_op, (JSPropertyOp*)&setter_op);
 
