@@ -114,9 +114,11 @@ value object::set_property(value const &id, value const &v_) {
   local_root_scope scope;
   value v = v_;
   string name = id.to_string();
-  if (!JS_SetUCProperty(Impl::current_context(), get(),
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetProperty
+  JSObject* obj = get();
+  if (!JS_SetUCProperty(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj),
                         (char16_t*)name.data(), name.length(),
-                        Impl::get_jsvalp(v)))
+                        JS::HandleValue::fromMarkedLocation(Impl::get_jsvalp(v))))
     throw exception("Could not set property");
   return v;
 }
