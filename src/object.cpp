@@ -204,7 +204,9 @@ bool object::has_own_property(value const &id) const {
   JSBool has;
 #if JS_VERSION >= 180
   string name = id.to_string();
-  if (!JS_AlreadyHasOwnUCProperty(Impl::current_context(), get_const(),
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_AlreadyHasOwnProperty
+  JSObject* obj = get_const();
+  if (!JS_AlreadyHasOwnUCProperty(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj),
                                   (char16_t*)name.data(), name.length(), &has))
 #else
   JSObject *obj = get_const();
