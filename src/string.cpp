@@ -36,7 +36,7 @@ THE SOFTWARE.
 using namespace flusspferd;
 
 Impl::string_impl::string_impl()
-  : str(JSVAL_TO_STRING(JS_GetEmptyStringValue(Impl::current_context())))
+  : str(JS_GetEmptyStringValue(Impl::current_context()).toString())
 { }
 
 Impl::string_impl::string_impl(char const *s)
@@ -61,8 +61,7 @@ Impl::string_impl::string_impl(js_char16_t const *s, std::size_t n)
 }
 
 Impl::string_impl::string_impl(value const &v)
-  : str(JS_ValueToString(Impl::current_context(),
-                         Impl::get_jsval(const_cast<value&>(v))))
+  : str(Impl::get_jsval(const_cast<value&>(v)).toString())
 {
   if (!str)
     throw exception("Could not convert value to string");
