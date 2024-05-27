@@ -127,8 +127,10 @@ value object::get_property(char const *name) const {
   if (is_null())
     throw exception("Could not get property (object is null)");
   value result;
-  if (!JS_GetProperty(Impl::current_context(), get_const(),
-                      name, Impl::get_jsvalp(result)))
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetProperty
+  JSObject* obj = get_const();
+  if (!JS_GetProperty(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj),
+                      name, JS::MutableHandleValue::fromMarkedLocation(Impl::get_jsvalp(result))))
     throw exception("Could not get property");
   return result;
 }
