@@ -145,9 +145,11 @@ value object::get_property(value const &id) const {
   value result;
   local_root_scope scope;
   string name = id.to_string();
-  if (!JS_GetUCProperty(Impl::current_context(), get_const(),
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetProperty
+  JSObject* obj = get_const();
+  if (!JS_GetUCProperty(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj),
                         (char16_t*)name.data(), name.length(),
-                        Impl::get_jsvalp(result)))
+                        JS::MutableHandleValue::fromMarkedLocation(Impl::get_jsvalp(result))))
     throw exception("Could not get property");
   return result;
 }
