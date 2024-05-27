@@ -119,7 +119,7 @@ double value::to_integral_number(int bits, bool signedness) const {
 }
 
 bool value::to_boolean() const {
-  JSBool result;
+  bool result;
   if (!JS_ValueToBoolean(Impl::current_context(), get(), &result))
     throw exception("Could not convert value to boolean");
   return result != false;
