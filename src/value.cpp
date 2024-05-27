@@ -60,25 +60,24 @@ bool value::is_function() const {
 
 bool value::get_boolean() const {
   assert(is_boolean());
-  return JSVAL_TO_BOOLEAN(get());
+  return get().toBoolean();
 }
 int value::get_int() const {
   assert(is_int());
-  return JSVAL_TO_INT(get());
+  return get().toInt32();
 }
 double value::get_double() const {
   assert(is_double());
-  jsdouble *d = JSVAL_TO_DOUBLE(get());
-  assert(d);
-  return *d;
+  jsdouble d = get().toDouble();
+  return d;
 }
 object value::get_object() const {
   assert(is_object());
-  return Impl::wrap_object(JSVAL_TO_OBJECT(get()));
+  return Impl::wrap_object(JSVAL_TO_OBJECT(get());
 }
 string value::get_string() const {
   assert(is_string());
-  return Impl::wrap_string(JSVAL_TO_STRING(get()));
+  return Impl::wrap_string(get().toString());
 }
 
 string value::to_string() const {
