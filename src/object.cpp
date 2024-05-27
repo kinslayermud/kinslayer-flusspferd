@@ -66,7 +66,12 @@ object object::parent() {
 object object::prototype() {
   if (is_null())
     throw exception("Could not get object prototype (object is null)");
-  return Impl::wrap_object(JS_GetPrototype(Impl::current_context(), get()));
+
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetPrototype
+  JSObject* obj = get();
+  JSObject* result;
+  JS_GetPrototype(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj), JS::MutableHandleObject::fromMarkedLocation(&result));
+  return Impl::wrap_object(result);
 }
 
 void object::set_parent(object const &o) {
