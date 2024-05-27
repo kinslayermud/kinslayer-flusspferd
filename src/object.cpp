@@ -464,5 +464,8 @@ bool object::get_property_attributes(
 object object::constructor() const {
 	if (is_null())
 		throw exception("Could not get object constructor (object is null)");
-	return Impl::wrap_object(JS_GetConstructor(Impl::current_context(), get_const()));
+
+	// Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetConstructor
+	JSObject* obj = get_const();
+	return Impl::wrap_object(JS_GetConstructor(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj)));
 }
