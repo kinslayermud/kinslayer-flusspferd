@@ -63,8 +63,8 @@ void tracer::trace_gcptr(char const *name, void *gcthing) {
 #if JS_VERSION >= 180
   JS_CALL_VALUE_TRACER(p->trc, v, name);
 #else
-  if (!JSVAL_IS_GCTHING(v))
+  if (!v.isGCThing())
     return;
-  JS_MarkGCThing(p->cx, JSVAL_TO_GCTHING(v), name, p->x);
+  JS_MarkGCThing(p->cx, v.isGCThing(), name, p->x);
 #endif
 }
