@@ -96,8 +96,10 @@ value object::set_property(char const *name, value const &v_) {
   if (is_null())
     throw exception("Could not set property (object is null)");
   value v = v_;
-  if (!JS_SetProperty(Impl::current_context(), get(), name,
-                      Impl::get_jsvalp(v)))
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetProperty
+  JSObject* obj = get();
+  if (!JS_SetProperty(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj), name,
+                      JS::HandleValue::fromMarkedLocation(Impl::get_jsvalp(v))))
     throw exception("Could not set property");
   return v;
 }
