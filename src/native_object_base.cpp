@@ -130,7 +130,9 @@ native_object_base::~native_object_base() {
   if(p)
   	delete p;
   if (!is_null()) {
-    JS_SetPrivate(Impl::current_context(), get(), 0);
+    // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetPrivate
+    //JS_SetPrivate(Impl::current_context(), get(), 0);
+    JS_SetPrivate(get(), 0);
   }
 }
 
@@ -141,7 +143,9 @@ void native_object_base::load_into(object const &o) {
   object::operator=(o);
 
   if (!is_null()) {
-    if (!JS_SetPrivate(Impl::current_context(), Impl::get_object(o), this))
+    // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetPrivate
+    //if (!JS_SetPrivate(Impl::current_context(), Impl::get_object(o), this))
+    if (!JS_SetPrivate(Impl::get_object(o), this))
       throw exception("Could not create native object (private data)");
   }
 }
@@ -159,7 +163,10 @@ bool native_object_base::is_object_native(object const &o_) {
   if (!classp || classp->finalize != &native_object_base::impl::finalize)
     return false;
 
-  void *priv = JS_GetPrivate(ctx, jso);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetPrivate
+  //void *priv = JS_GetPrivate(ctx, jso);
+  void *priv = JS_GetPrivate(jso);
+
   if (!priv)
     return false;
 
@@ -179,7 +186,10 @@ native_object_base &native_object_base::get_native(object const &o_) {
   if (!classp || classp->finalize != &native_object_base::impl::finalize)
     throw exception("Object is not native");
 
-  void *priv = JS_GetPrivate(ctx, jso);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetPrivate
+  //void *priv = JS_GetPrivate(ctx, jso);
+  void *priv = JS_GetPrivate(jso);
+
   if (!priv)
     throw exception("Object is not native");
 
@@ -221,7 +231,9 @@ object native_object_base::do_create_enumerable_object(object const &prototype_)
 }
 
 void native_object_base::impl::finalize(JSContext *ctx, JSObject *obj) {
-  void *p = JS_GetPrivate(ctx, obj);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetPrivate
+  //void *p = JS_GetPrivate(ctx, obj);
+  void *p = JS_GetPrivate(obj);
 
   if (p) {
     current_context_scope scope(Impl::wrap_context(ctx));
