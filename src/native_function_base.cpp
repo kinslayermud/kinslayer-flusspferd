@@ -87,8 +87,8 @@ JSClass native_function_base::impl::function_priv_class = {
   //| JSCLASS_MARK_IS_TRACE // Ref: https://bugzilla.mozilla.org/attachment.cgi?id=516449&action=diff and https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass.flags
 #endif
   ,
-  JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_PropertyStub,
-  JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub,
+  0, 0, 0, 0,
+  0, 0, 0,
   &native_function_base::impl::finalize,
   0,
   0,
