@@ -74,7 +74,7 @@ double value::get_double() const {
 }
 object value::get_object() const {
   assert(is_object());
-  return Impl::wrap_object(JSVAL_TO_OBJECT(get());
+  return Impl::wrap_object(get().toObjectOrNull());
 }
 string value::get_string() const {
   assert(is_string());
