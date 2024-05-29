@@ -44,7 +44,7 @@ using namespace flusspferd;
 class native_object_base::impl {
 public:
   static void finalize(JSContext *ctx, JSObject *obj);
-  static JSBool call_helper(JSContext *, JSObject *, uintN, jsval *, jsval *);
+  static bool call_helper(JSContext *, JSObject *, uintN, jsval *, jsval *);
 
 #if JS_VERSION >= 180
   static void trace_op(JSTracer *trc, JSObject *obj);
@@ -53,11 +53,11 @@ public:
 #endif
 
   template<property_mode>
-  static JSBool property_op(JSContext *, JSObject *, jsval, jsval *);
+  static bool property_op(JSContext *, JSObject *, jsval, jsval *);
 
-  static JSBool new_resolve(JSContext *, JSObject *, jsval, uintN, JSObject **);
+  static bool new_resolve(JSContext *, JSObject *, jsval, uintN, JSObject **);
 
-  static JSBool new_enumerate(JSContext *cx, JSObject *obj,
+  static bool new_enumerate(JSContext *cx, JSObject *obj,
     JSIterateOp enum_op, jsval *statep, jsid *idp);
 
 public:
@@ -229,7 +229,7 @@ void native_object_base::impl::finalize(JSContext *ctx, JSObject *obj) {
   }
 }
 
-JSBool native_object_base::impl::call_helper(
+bool native_object_base::impl::call_helper(
     JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
   FLUSSPFERD_CALLBACK_BEGIN {
@@ -258,7 +258,7 @@ JSBool native_object_base::impl::call_helper(
 }
 
 template<native_object_base::property_mode mode>
-JSBool native_object_base::impl::property_op(
+bool native_object_base::impl::property_op(
     JSContext *ctx, JSObject *obj, jsval id, jsval *vp)
 {
   FLUSSPFERD_CALLBACK_BEGIN {
@@ -272,7 +272,7 @@ JSBool native_object_base::impl::property_op(
   } FLUSSPFERD_CALLBACK_END;
 }
 
-JSBool native_object_base::impl::new_resolve(
+bool native_object_base::impl::new_resolve(
     JSContext *ctx, JSObject *obj, jsval id, uintN sm_flags, JSObject **objp)
 {
   FLUSSPFERD_CALLBACK_BEGIN {
@@ -300,7 +300,7 @@ JSBool native_object_base::impl::new_resolve(
   } FLUSSPFERD_CALLBACK_END;
 }
 
-JSBool native_object_base::impl::new_enumerate(
+bool native_object_base::impl::new_enumerate(
     JSContext *ctx, JSObject *obj, JSIterateOp enum_op, jsval *statep, jsid *idp)
 {
   FLUSSPFERD_CALLBACK_BEGIN {
