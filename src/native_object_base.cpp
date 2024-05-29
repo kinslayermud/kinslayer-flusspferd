@@ -345,7 +345,9 @@ bool native_object_base::impl::new_enumerate(
         iter = (boost::any*)JSVAL_TO_PRIVATE(*statep);
         value id;
         if (iter->empty() || (id = self.enumerate_next(*iter)).is_undefined())
-          *statep = JSVAL_NULL;
+          // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::UndefinedValue
+          //*statep = JSVAL_NULL;
+	  *statep = JS::UndefinedValue();
         else {
           JS_ValueToId(ctx, Impl::get_jsval(id), idp);
         }
