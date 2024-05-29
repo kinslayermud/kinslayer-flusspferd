@@ -91,8 +91,11 @@ std::string value::to_std_string() const {
 
 double value::to_number() const {
   double value;
-  if (!JS_ValueToNumber(Impl::current_context(), get(), &value))
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Value
+  //if (!JS_ValueToNumber(Impl::current_context(), get(), &value))
+  if (!get().isNumber())
     throw exception("Could not convert value to number");
+  value = get().toNumber();
   return value;
 }
 
