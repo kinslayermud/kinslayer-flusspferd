@@ -164,12 +164,13 @@ void value::unbind() {
 }
 
 Impl::value_impl Impl::value_impl::from_double(double num) {
-  value_impl result;
-  if (!JS_NewNumberValue(
-        Impl::current_context(), jsdouble(num), result.getp()))
-  {
-    throw exception("Could not convert integer to value");
-  }
+  value_impl result = JS_NumberValue(num);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NumberValue
+  //if (!JS_NewNumberValue(
+  //      Impl::current_context(), jsdouble(num), result.getp()))
+  //{
+  //  throw exception("Could not convert integer to value");
+  //}
   return result;
 }
 
