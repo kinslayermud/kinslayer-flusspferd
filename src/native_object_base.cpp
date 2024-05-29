@@ -158,7 +158,9 @@ bool native_object_base::is_object_native(object const &o_) {
 
   JSContext *ctx = Impl::current_context();
   JSObject *jso = Impl::get_object(o);
-  JSClass *classp = JS_GET_CLASS(ctx, jso);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GET_CLASS
+  //JSClass *classp = JS_GET_CLASS(ctx, jso);
+  const JSClass *classp = JS_GetClass(jso);
 
   if (!classp || classp->finalize != &native_object_base::impl::finalize)
     return false;
@@ -181,7 +183,9 @@ native_object_base &native_object_base::get_native(object const &o_) {
 
   JSContext *ctx = Impl::current_context();
   JSObject *jso = Impl::get_object(o);
-  JSClass *classp = JS_GET_CLASS(ctx, jso);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GET_CLASS
+  //JSClass *classp = JS_GET_CLASS(ctx, jso);
+  const JSClass *classp = JS_GetClass(jso);
 
   if (!classp || classp->finalize != &native_object_base::impl::finalize)
     throw exception("Object is not native");
