@@ -123,8 +123,11 @@ double value::to_integral_number(int bits, bool signedness) const {
 
 bool value::to_boolean() const {
   bool result;
-  if (!JS_ValueToBoolean(Impl::current_context(), get(), &result))
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Value
+  //if (!JS_ValueToBoolean(Impl::current_context(), get(), &result))
+  if (!get().isBoolean())
     throw exception("Could not convert value to boolean");
+  result = get().toBoolean();
   return result != false;
 }
 
