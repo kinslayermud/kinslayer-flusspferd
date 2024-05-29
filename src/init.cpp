@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#include "flusspferd/spidermonkey/adapter.hpp"
+
 #include "flusspferd/init.hpp"
 #include "flusspferd/exception.hpp"
 #include "flusspferd/context.hpp"
@@ -51,12 +53,13 @@ public:
   // we use a single JS_Runtime for each process!
   impl()
   {
-#if JS_VERSION >= 180
-    boost::call_once(runtime_created, JS_SetCStringsAreUTF8);
-#endif
+    // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_CStringsAreUTF8  (all strings are UTF-8 when we invoke JS_SetCStringsAreUTF8)
+//#if JS_VERSION >= 180
+//    boost::call_once(runtime_created, JS_SetCStringsAreUTF8);
+//#endif
 
-    if (!JS_CStringsAreUTF8())
-      throw std::runtime_error("UTF8 support in Spidermonkey required");
+//    if (!JS_CStringsAreUTF8())
+//      throw std::runtime_error("UTF8 support in Spidermonkey required");
 
     runtime = JS_NewRuntime( FLUSSPFERD_MAX_BYTES );
     if (!runtime) {
