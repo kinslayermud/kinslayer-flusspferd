@@ -112,7 +112,9 @@ function native_function_base::create_function() {
   {
     local_root_scope scope;
 
-    JSObject *priv = JS_NewObject(ctx, &impl::function_priv_class, 0, 0);
+    // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewObject
+    //JSObject *priv = JS_NewObject(ctx, &impl::function_priv_class, 0, 0);
+    JSObject *priv = JS_NewObject(ctx, &impl::function_priv_class);
 
     if (!priv)
       throw exception("Could not create native function");
