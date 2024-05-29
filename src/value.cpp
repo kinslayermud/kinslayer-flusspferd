@@ -134,7 +134,10 @@ bool value::to_boolean() const {
 
 object value::to_object() const {
   JSObject *result;
-  if (!JS_ValueToObject(Impl::current_context(), get(), &result))
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ValueToObject
+  //if (!JS_ValueToObject(Impl::current_context(), get(), &result))
+  jsval val = get();
+  if (!JS_ValueToObject(Impl::current_context(), JS::HandleValue::fromMarkedLocation(&val), JS::MutableHandleObject::fromMarkedLocation(&result)))
     throw exception("Could not convert value to object");
   return Impl::wrap_object(result);
 }
