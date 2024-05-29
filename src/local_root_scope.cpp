@@ -36,10 +36,13 @@ using namespace flusspferd;
 
 local_root_scope::local_root_scope()
 : ctx(current_context()) {
-  if (!JS_EnterLocalRootScope(Impl::get_context(ctx)))
-    throw exception("Could not enter local GC root scope");
+  // Ref: https://bugzilla.mozilla.org/show_bug.cgi?id=519949 && 
+  // https://mail.gnome.org/archives/commits-list/2013-July/msg04366.html
+  //if (!JS_EnterLocalRootScope(Impl::get_context(ctx)))
+  //  throw exception("Could not enter local GC root scope");
 }
 
 local_root_scope::~local_root_scope() {
-  JS_LeaveLocalRootScope(Impl::get_context(ctx));
+  // Ref: https://mail.gnome.org/archives/commits-list/2013-July/msg04366.html
+  //JS_LeaveLocalRootScope(Impl::get_context(ctx));
 }
