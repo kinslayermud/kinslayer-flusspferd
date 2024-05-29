@@ -118,9 +118,11 @@ function native_function_base::create_function() {
     //JS_SetPrivate(ctx, priv, this); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetPrivate
     JS_SetPrivate(priv, this);
 
+    // https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewFunction (parent removed)
+    // fun = JS_NewFunction(ctx, &impl::call_helper, p->arity, 0, 0, p->name.c_str());
     fun = JS_NewFunction(
         ctx, &impl::call_helper,
-        p->arity, 0, 0, p->name.c_str());
+        p->arity, 0, p->name.c_str());
 
     if (!fun)
       throw exception("Could not create native function");
