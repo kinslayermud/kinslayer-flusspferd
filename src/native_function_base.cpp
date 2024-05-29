@@ -254,7 +254,7 @@ native_function_base *native_function_base::get_native(object const &o_) {
 
   self =
     //(native_function_base *) JS_GetInstancePrivate(ctx, p, &impl::function_priv_class, 0); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetInstancePrivate
-    (native_function_base *) JS_GetInstancePrivate(ctx, JS_GetInstancePrivate(ctx, JS::HandleObject::fromMarkedLocation(&p), &impl::function_priv_class, 0);
+    (native_function_base *) JS_GetInstancePrivate(ctx, JS::HandleObject::fromMarkedLocation(&p), &impl::function_priv_class, 0);
 
   if (!self)
     throw exception("Could not get native function pointer");
