@@ -44,7 +44,7 @@ public:
   : arity(arity), name(name)
   {}
 
-  static JSBool call_helper(
+  static bool call_helper(
     JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
   static void finalize(JSContext *, JSObject *);
 
@@ -138,7 +138,7 @@ function native_function_base::create_function() {
   return *static_cast<function *>(this);
 }
 
-JSBool native_function_base::impl::call_helper(
+bool native_function_base::impl::call_helper(
     JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
   FLUSSPFERD_CALLBACK_BEGIN {
