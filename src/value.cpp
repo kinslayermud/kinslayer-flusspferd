@@ -188,5 +188,8 @@ Impl::value_impl Impl::value_impl::from_string(string const &s) {
 }
 
 Impl::value_impl Impl::value_impl::from_object(object const &o) {
-  return wrap_jsval(JS::ObjectValue(Impl::get_object(const_cast<object&>(o))));
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::ObjectValue
+  //return wrap_jsval(JS::ObjectValue(Impl::get_object(const_cast<object&>(o))));
+  JSObject* obj = Impl::get_object(o);
+  return wrap_jsval(JS::ObjectValue(*obj));
 }
