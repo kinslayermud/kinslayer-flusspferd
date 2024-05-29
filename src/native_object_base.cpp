@@ -333,7 +333,9 @@ bool native_object_base::impl::new_enumerate(
         iter = new boost::any;
         int num = 0;
         *iter = self.enumerate_start(num);
-        *statep = PRIVATE_TO_JSVAL(iter);
+	// Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/PRIVATE_TO_JSVAL
+        //*statep = PRIVATE_TO_JSVAL(iter);
+	*statep = JS::PrivateValue(iter);
         if (idp)
           *idp = INT_TO_JSVAL(num);
         return true;
