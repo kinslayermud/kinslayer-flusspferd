@@ -75,7 +75,9 @@ native_function_base::~native_function_base() { }
 
 
 #if JS_VERSION >= 180
-#define MARK_TRACE_OP ((JSMarkOp) &native_function_base::impl::trace_op)
+// Ref: https://bug638291.bmoattachments.org/attachment.cgi?id=516449
+//#define MARK_TRACE_OP ((JSMarkOp) &native_function_base::impl::trace_op)
+#define MARK_TRACE_OP ((JSTraceOp*) &native_function_base::impl::trace_op)
 #else
 #define MARK_TRACE_OP (&native_function_base::impl::mark_op)
 #endif
