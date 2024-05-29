@@ -56,7 +56,8 @@ bool value::is_boolean() const { return get().isBoolean(); }
 bool value::is_string() const { return get().isString(); }
 bool value::is_object() const { return get().isObject(); }
 bool value::is_function() const {
-  return JS_TypeOfValue(Impl::current_context(), get()) == JSTYPE_FUNCTION;
+  jsval val = get();
+  return JS_TypeOfValue(Impl::current_context(), JS::HandleValue::fromMarkedLocation(&val)) == JSTYPE_FUNCTION;
 }
 
 bool value::get_boolean() const {
