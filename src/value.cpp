@@ -46,14 +46,15 @@ using namespace flusspferd;
 value::~value() { }
 value::value() : Impl::value_impl(JS::UndefinedValue()) { }
 
-bool value::is_null() const { return JSVAL_IS_NULL(get()); }
-bool value::is_undefined() const { return JSVAL_IS_VOID(get()); }
-bool value::is_int() const { return JSVAL_IS_INT(get()); }
-bool value::is_double() const { return JSVAL_IS_DOUBLE(get()); }
-bool value::is_number() const { return JSVAL_IS_NUMBER(get()); }
-bool value::is_boolean() const { return JSVAL_IS_BOOLEAN(get()); }
-bool value::is_string() const { return JSVAL_IS_STRING(get()); }
-bool value::is_object() const { return JSVAL_IS_OBJECT(get()); }
+// Ref: https://bugzilla.mozilla.org/show_bug.cgi?id=952650
+bool value::is_null() const { return get().isNull(); }
+bool value::is_undefined() const { return get().isUndefined(); }
+bool value::is_int() const { return get().isInt32(); }
+bool value::is_double() const { return get().isDouble(); }
+bool value::is_number() const { return get().isNumber(); }
+bool value::is_boolean() const { return get().isBoolean(); }
+bool value::is_string() const { return get().isString(); }
+bool value::is_object() const { return get().isObject(); }
 bool value::is_function() const {
   return JS_TypeOfValue(Impl::current_context(), get()) == JSTYPE_FUNCTION;
 }
