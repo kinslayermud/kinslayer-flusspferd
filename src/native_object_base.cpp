@@ -342,7 +342,9 @@ bool native_object_base::impl::new_enumerate(
       }
     case JSENUMERATE_NEXT:
       {
-        iter = (boost::any*)JSVAL_TO_PRIVATE(*statep);
+	// Ref: https://bug952650.bmoattachments.org/attachment.cgi?id=8413511
+        //iter = (boost::any*)JSVAL_TO_PRIVATE(*statep);
+	iter = (boost::any*)statep->toPrivate();
         value id;
         if (iter->empty() || (id = self.enumerate_next(*iter)).is_undefined())
           // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::UndefinedValue
@@ -355,7 +357,9 @@ bool native_object_base::impl::new_enumerate(
       }
     case JSENUMERATE_DESTROY:
       {
-        iter = (boost::any*)JSVAL_TO_PRIVATE(*statep);
+	// Ref: https://bug952650.bmoattachments.org/attachment.cgi?id=8413511
+        //iter = (boost::any*)JSVAL_TO_PRIVATE(*statep);
+	iter = (boost::any*)statep->toPrivate();
         delete iter;
         return true;
       }
