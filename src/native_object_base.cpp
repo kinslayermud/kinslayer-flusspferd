@@ -345,8 +345,13 @@ bool native_object_base::impl::new_enumerate(
 	// Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/PRIVATE_TO_JSVAL
         //*statep = PRIVATE_TO_JSVAL(iter);
 	*statep = JS::PrivateValue(iter);
-        if (idp)
-          *idp = INT_TO_JSVAL(num);
+        if (idp) {
+	  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jsid
+	  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Int32Value
+          //*idp = INT_TO_JSVAL(num);
+	  jsval val = JS::Int32Value(num);
+	  JS_ValueToId(ctx, JS::HandleValue::fromMarkedLocation(&val), JS::MutableHandleId::fromMarkedLocation(idp));
+	}
         return true;
       }
     case JSENUMERATE_NEXT:
