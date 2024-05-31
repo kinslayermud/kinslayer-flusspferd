@@ -67,9 +67,9 @@ public:
 
 static const unsigned int basic_flags =
   JSCLASS_HAS_PRIVATE
-  | JSCLASS_NEW_RESOLVE
+  //| JSCLASS_NEW_RESOLVE // Ref: https://bug993026.bmoattachments.org/attachment.cgi?id=8515452
 #if JS_VERSION >= 180
-  | JSCLASS_MARK_IS_TRACE
+  //| JSCLASS_MARK_IS_TRACE // Ref: https://bug638291.bmoattachments.org/attachment.cgi?id=516449
 #endif
   ;
 
@@ -102,7 +102,7 @@ JSClass native_object_base::impl::native_object_class = {
 
 JSClass native_object_base::impl::native_enumerable_object_class = {
   "NativeObject",
-  basic_flags | JSCLASS_NEW_ENUMERATE,
+  basic_flags, // | JSCLASS_NEW_ENUMERATE, // Ref: https://bug1097267.bmoattachments.org/attachment.cgi?id=8526676
   &native_object_base::impl::property_op<native_object_base::property_add>,
   &native_object_base::impl::property_op<native_object_base::property_delete>,
   &native_object_base::impl::property_op<native_object_base::property_get>,
