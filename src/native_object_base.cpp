@@ -205,11 +205,16 @@ object native_object_base::do_create_object(object const &prototype_) {
 
   object prototype = prototype_;
 
-  JSObject *o = JS_NewObject(
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewObject
+  /*JSObject *o = JS_NewObject(
       ctx,
       &impl::native_object_class,
       Impl::get_object(prototype),
-      0);
+      0); */
+  
+   JSObject *proto = Impl::get_object(prototype); 
+   JSObject *o = JS_NewObjectWithGivenProto(ctx, &impl::native_object_class, JS::HandleObject::fromMarkedLocation(&proto)); 
+
 
   if (!o)
     throw exception("Could not create native object");
@@ -222,11 +227,15 @@ object native_object_base::do_create_enumerable_object(object const &prototype_)
 
   object prototype = prototype_;
 
-  JSObject *o = JS_NewObject(
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewObject
+  /* JSObject *o = JS_NewObject(
       ctx,
       &impl::native_enumerable_object_class,
       Impl::get_object(prototype),
-      0);
+      0)a */;
+
+  JSObject *proto = Impl::get_object(prototype);
+  JSObject *o = JS_NewObjectWithGivenProto(ctx, &impl::native_enumerable_object_class, JS::HandleObject::fromMarkedLocation(&proto));
 
   if (!o)
     throw exception("Could not create native object");
