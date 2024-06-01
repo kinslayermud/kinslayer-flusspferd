@@ -145,7 +145,8 @@ void native_object_base::load_into(object const &o) {
   if (!is_null()) {
     // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetPrivate
     //if (!JS_SetPrivate(Impl::current_context(), Impl::get_object(o), this))
-    if (!JS_SetPrivate(Impl::get_object(o), this))
+    JS_SetPrivate(Impl::get_object(o), this);
+    if (!JS_GetPrivate(Impl::get_object(o)))
       throw exception("Could not create native object (private data)");
   }
 }
