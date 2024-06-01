@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include "flusspferd/root.hpp"
 #include "flusspferd/exception.hpp"
 #include "flusspferd/function.hpp"
+#include "flusspferd/property_iterator.hpp"
 #include "flusspferd/current_context_scope.hpp"
 #include "flusspferd/spidermonkey/init.hpp"
 #include <unordered_map>
@@ -57,8 +58,11 @@ public:
 
   static bool new_resolve(JSContext *, JSObject *, jsval, uintN, JSObject **);
 
-  static bool new_enumerate(JSContext *cx, JSObject *obj,
-    JSIterateOp enum_op, jsval *statep, jsid *idp);
+  //static bool new_enumerate(JSContext *cx, JSObject *obj,
+  //  JSIterateOp enum_op, jsval *statep, jsid *idp);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSNewEnumerateOp
+  // Ref: https://bug1097267.bmoattachments.org/attachment.cgi?id=8526676
+  static bool new_enumerate(JSContext *cx, JSObject *obj, JS::AutoIdVector &properties);
 
 public:
   static JSClass native_object_class;
@@ -328,16 +332,18 @@ bool native_object_base::impl::new_resolve(
   } FLUSSPFERD_CALLBACK_END;
 }
 
-bool native_object_base::impl::new_enumerate(
-    JSContext *ctx, JSObject *obj, JSIterateOp enum_op, jsval *statep, jsid *idp)
+//bool native_object_base::impl::new_enumerate(
+//    JSContext *ctx, JSObject *obj, JSIterateOp enum_op, jsval *statep, jsid *idp)
+bool native_object_base::impl::new_enumerate(JSContext *ctx, JSObject *obj, JS::AutoIdVector &properties)
 {
+  // Ref:  https://bug1097267.bmoattachments.org/attachment.cgi?id=8526676   // return the properties of the object in output properties
+  /*
   FLUSSPFERD_CALLBACK_BEGIN {
     current_context_scope scope(Impl::wrap_context(ctx));
 
     native_object_base &self =
       native_object_base::get_native(Impl::wrap_object(obj));
 
-    
     boost::any *iter;
     switch (enum_op) {
     case JSENUMERATE_INIT:
@@ -382,6 +388,18 @@ bool native_object_base::impl::new_enumerate(
       }
     }
   } FLUSSPFERD_CALLBACK_END;
+
+  */
+  object o = Impl::wrap_object(obj);
+  for (property_iterator it = o.begin(); it != o.end(); ++it) {
+    jsid property;
+    value v = *it;
+    jsval val = JS::Int32Value(v.get_int());
+    JS_ValueToId(ctx, JS::HandleValue::fromMarkedLocation(&val), JS::MutableHandleId::fromMarkedLocation(&property));
+    properties.append(property); 
+  }
+
+  return true;
 }
 
 #if JS_VERSION >= 180
