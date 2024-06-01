@@ -409,7 +409,8 @@ bool native_object_base::impl::new_enumerate(JSContext *ctx, JSObject *obj, JS::
 void native_object_base::impl::trace_op(
     JSTracer *trc, JSObject *obj)
 {
-  current_context_scope scope(Impl::wrap_context(trc->context));
+  //current_context_scope scope(Impl::wrap_context(trc->context)); // Ref: JSTracer is deprecated: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/Internals/Tracing_JIT
+  current_context_scope scope(Impl::wrap_context(Impl::current_context()));
 
   native_object_base &self =
     native_object_base::get_native(Impl::wrap_object(obj));
