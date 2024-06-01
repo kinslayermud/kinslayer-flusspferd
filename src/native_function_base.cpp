@@ -185,7 +185,8 @@ bool native_function_base::impl::call_helper(
 void native_function_base::impl::trace_op(
     JSTracer *trc, JSObject *obj)
 {
-  current_context_scope scope(Impl::wrap_context(trc->context));
+  //current_context_scope scope(Impl::wrap_context(trc->context));
+  current_context_scope scope(Impl::wrap_context(Impl::current_context()));
 
   native_function_base *self =
     native_function_base::get_native(Impl::wrap_object(obj));
