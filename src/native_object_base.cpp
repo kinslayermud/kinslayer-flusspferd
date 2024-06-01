@@ -86,9 +86,9 @@ JSClass native_object_base::impl::native_object_class = {
   &native_object_base::impl::property_op<native_object_base::property_delete>,
   &native_object_base::impl::property_op<native_object_base::property_get>,
   &native_object_base::impl::property_op<native_object_base::property_set>,
-  JS_EnumerateStub,
+  0, //JS_EnumerateStub, // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass
   (JSResolveOp) &native_object_base::impl::new_resolve,
-  JS_ConvertStub,
+  0, //JS_ConvertStub, // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass
   &native_object_base::impl::finalize,
   0,
   0,
@@ -109,7 +109,7 @@ JSClass native_object_base::impl::native_enumerable_object_class = {
   &native_object_base::impl::property_op<native_object_base::property_set>,
   (JSEnumerateOp) &native_object_base::impl::new_enumerate,
   (JSResolveOp) &native_object_base::impl::new_resolve,
-  JS_ConvertStub,
+  0, //JS_ConvertStub, // https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass
   &native_object_base::impl::finalize,
   0,
   0,
