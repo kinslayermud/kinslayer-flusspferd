@@ -46,7 +46,9 @@ public:
 
   static bool call_helper(
     JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-  static void finalize(JSContext *, JSObject *);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSFinalizeOp
+  //static void finalize(JSContext *, JSObject *);
+  static void finalize(JSFreeOp *fop, JSObject *);
 
 #if JS_VERSION >= 180
   static void trace_op(JSTracer *trc, JSObject *obj);
@@ -210,7 +212,10 @@ uint32 native_function_base::impl::mark_op(
 }
 #endif
 
-void native_function_base::impl::finalize(JSContext *ctx, JSObject *priv) {
+// Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSFinalizeOp
+//void native_function_base::impl::finalize(JSContext *ctx, JSObject *priv) {
+void native_function_base::impl::finalize(JSFreeOp *fop, JSObject *priv) {
+  JSContext *ctx = Impl::current_context();
   current_context_scope scope(Impl::wrap_context(ctx));
 
   native_function_base *self =
