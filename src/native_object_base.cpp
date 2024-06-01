@@ -44,7 +44,8 @@ using namespace flusspferd;
 
 class native_object_base::impl {
 public:
-  static void finalize(JSContext *ctx, JSObject *obj);
+  //static void finalize(JSContext *ctx, JSObject *obj); // Ref: https://bug737365.bmoattachments.org/attachment.cgi?id=607922
+  static void finalize(JSFreeOp *fop, JSObject *obj);
   static bool call_helper(JSContext *, JSObject *, uintN, jsval *, jsval *);
 
 #if JS_VERSION >= 180
@@ -248,13 +249,14 @@ object native_object_base::do_create_enumerable_object(object const &prototype_)
   return Impl::wrap_object(o);
 }
 
-void native_object_base::impl::finalize(JSContext *ctx, JSObject *obj) {
+//void native_object_base::impl::finalize(JSContext *ctx, JSObject *obj) { // REf: https://bug737365.bmoattachments.org/attachment.cgi?id=607922
+void native_object_base::impl::finalize(JSFreeOp *fop, JSObject *obj) {
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetPrivate
   //void *p = JS_GetPrivate(ctx, obj);
   void *p = JS_GetPrivate(obj);
 
   if (p) {
-    current_context_scope scope(Impl::wrap_context(ctx));
+    //current_context_scope scope(Impl::wrap_context(ctx)); // Ref: https://bug737365.bmoattachments.org/attachment.cgi?id=607922
     delete static_cast<native_object_base*>(p);
   }
 }
