@@ -260,7 +260,9 @@ bool native_object_base::impl::call_helper(
   FLUSSPFERD_CALLBACK_BEGIN {
     current_context_scope scope(Impl::wrap_context(ctx));
 
-    JSObject *function = JSVAL_TO_OBJECT(argv[-2]);
+    //JSObject *function = JSVAL_TO_OBJECT(argv[-2]); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ValueToObject
+    JSObject *function;
+    JS_ValueToObject(ctx, JS::HandleValue::fromMarkedLocation(&argv[-2]), JS::MutableHandleObject::fromMarkedLocation(&function));
 
     native_object_base *self = 0;
     
