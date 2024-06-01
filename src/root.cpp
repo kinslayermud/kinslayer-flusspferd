@@ -45,7 +45,7 @@ template<typename T>
 root<T>::root(T const &o)
 : T(o)
 {
-  JSBool status;
+  bool status;
 
   status = JS_AddRoot(
     Impl::current_context(),
