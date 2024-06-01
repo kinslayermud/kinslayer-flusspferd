@@ -44,8 +44,10 @@ public:
   : arity(arity), name(name)
   {}
 
-  static bool call_helper(
-    JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSNative
+  //static bool call_helper(
+  //  JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+  static bool call_helper(JSContext *ctx, uintN argc, jsval *argv);
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSFinalizeOp
   //static void finalize(JSContext *, JSObject *);
   static void finalize(JSFreeOp *fop, JSObject *);
@@ -146,8 +148,11 @@ function native_function_base::create_function() {
   return *static_cast<function *>(this);
 }
 
-bool native_function_base::impl::call_helper(
-    JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+// Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSNative
+// typedef bool (* JSNative)(JSContext *cx, unsigned argc, JS::Value *vp);
+//bool native_function_base::impl::call_helper(
+//    JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+bool native_function_base::impl::call_helper(JSContext *ctx,  uintN argc, jsval *argv)
 {
   FLUSSPFERD_CALLBACK_BEGIN {
     current_context_scope scope(Impl::wrap_context(ctx));
@@ -173,9 +178,9 @@ bool native_function_base::impl::call_helper(
 
     call_context x;
 
-    x.self = Impl::wrap_object(obj);
+    //x.self = Impl::wrap_object(obj);
     x.arg = Impl::arguments_impl(argc, argv);
-    x.result.bind(Impl::wrap_jsvalp(rval));
+    //x.result.bind(Impl::wrap_jsvalp(rval));
     x.function = Impl::wrap_object(function);
 
     self->call(x);
