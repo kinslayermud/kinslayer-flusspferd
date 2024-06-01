@@ -30,6 +30,8 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/value.hpp"
 #include <js/jsapi.h>
 
+#define JS_CALL_VALUE_TRACER(t, v, n)   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference
+
 using namespace flusspferd;
 
 class tracer::impl {
