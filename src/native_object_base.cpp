@@ -315,16 +315,17 @@ bool native_object_base::impl::new_resolve(
 
     unsigned flags = 0;
 
-    if (sm_flags & JSRESOLVE_QUALIFIED)
-      flags |= property_qualified;
-    if (sm_flags & JSRESOLVE_ASSIGNING)
-      flags |= property_assigning;
-    if (sm_flags & JSRESOLVE_DETECTING)
-      flags |= property_detecting;
-    if (sm_flags & JSRESOLVE_DECLARING)
-      flags |= property_declaring;
-    if (sm_flags & JSRESOLVE_CLASSNAME)
-      flags |= property_classname;
+    // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSNewResolveOp
+    //if (sm_flags & JSRESOLVE_QUALIFIED)
+    //  flags |= property_qualified;
+    //if (sm_flags & JSRESOLVE_ASSIGNING) // Ref: https://bug547140.bmoattachments.org/attachment.cgi?id=8397245
+    //  flags |= property_assigning;
+    //if (sm_flags & JSRESOLVE_DETECTING)
+    //  flags |= property_detecting;
+    //if (sm_flags & JSRESOLVE_DECLARING)
+    //  flags |= property_declaring;
+    //if (sm_flags & JSRESOLVE_CLASSNAME)
+    //  flags |= property_classname;
 
     *objp = 0;
     if (self.property_resolve(Impl::wrap_jsval(id), flags))
