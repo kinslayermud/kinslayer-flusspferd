@@ -79,7 +79,8 @@ static const unsigned int basic_flags =
   ;
 
 #if JS_VERSION >= 180
-#define MARK_TRACE_OP ((JSMarkOp) &native_object_base::impl::trace_op)
+//#define MARK_TRACE_OP ((JSMarkOp) &native_object_base::impl::trace_op)
+#define MARK_TRACE_OP (&native_object_base::impl::trace_op)
 #else
 #define MARK_TRACE_OP (&native_object_base::impl::mark_op)
 #endif
