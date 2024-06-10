@@ -111,9 +111,11 @@ public:
     if(!global_)
       throw exception("Could not create Global Object");
 
-    JS_SetGlobalObject(context, global_);
+    // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetGlobalObject
+    //JS_SetGlobalObject(context, global_);
+    //if(!JS_InitStandardClasses(context, global_))
 
-    if(!JS_InitStandardClasses(context, global_))
+    if(!JS_InitStandardClasses(context, JS::HandleObject::fromMarkedLocation(&global_)))
       throw exception("Could not initialize Global Object");
 
     // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_DeleteProperty
