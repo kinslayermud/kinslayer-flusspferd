@@ -121,7 +121,13 @@ std::basic_string<flusspferd::js_char16_t> string::to_utf16_string() const {
   JSString *str = get_string(*this);
   assert(str);
   std::size_t len = JS_GetStringLength(str);
-  char16_t *text = JS_GetStringChars(str); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
+  // Ref: See jsapi.h, line 5818
+  //char16_t *text = JS_GetStringChars(str); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
+  JSFlatString* fstr = JS_FlattenString(Impl::current_context(), str);
+  assert(fstr);
+  JS::AutoCheckCannotGC nogc;
+  const char16_t* text = JS_GetTwoByteFlatStringChars(nogc, fstr);
+  assert(text);
   return std::basic_string<js_char16_t>((js_char16_t*)text, len);
 }
 
