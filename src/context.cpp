@@ -210,7 +210,10 @@ bool context::is_valid() const {
 }
 
 object context::global() {
-  JSObject *o = JS_GetGlobalObject(p->context);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetGlobalForScopeChain
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::CurrentGlobalOrNu
+  // JSObject *o = JS_GetGlobalObject(p->context);
+  JSObject *o = JS::CurrentGlobalOrNull(p->context);
   if (!o) {
     throw exception("No global object");
   }
