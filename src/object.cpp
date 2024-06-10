@@ -80,8 +80,9 @@ object object::prototype() {
 void object::set_parent(object const &o) {
   if (is_null())
     throw exception("Could not set parent (object is null)");
-  if (!JS_SetParent(Impl::current_context(), get(), o.get_const()))
-    throw exception("Could not set object parent");
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetParent / Obsolete, no longer exists this feature
+  //if (!JS_SetParent(Impl::current_context(), get(), o.get_const()))
+  //  throw exception("Could not set object parent");
 }
 
 void object::set_prototype(object const &o) {
