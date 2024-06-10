@@ -50,9 +50,22 @@ using namespace flusspferd;
 namespace {
   static JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_PropertyStub,
-    0, 0, 0, 0,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    0,
+    0,
+    0,
+    0,
+    0, 
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
   };
 }
 
