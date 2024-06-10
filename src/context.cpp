@@ -250,7 +250,9 @@ object context::constructor(std::string const &name) const {
 }
 
 void context::gc() {
-  JS_GC(p->context);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GC
+  //JS_GC(p->context);
+  JS_GC(JS_GetRuntime(p->context));
 }
 
 void context::set_thread() {
