@@ -97,7 +97,7 @@ std::size_t string::length() const {
 
 flusspferd::js_char16_t const *string::data() const {
   assert(get_string(*this));
-  return (const js_char16_t*)JS_GetStringChars(get_string(*this));
+  return (const js_char16_t*)JS_GetStringCharsZAndLength(Impl::current_context(), get_string(*this));
 }
 
 char const *string::c_str() const {
@@ -119,11 +119,19 @@ std::basic_string<flusspferd::js_char16_t> string::to_utf16_string() const {
 }
 
 bool flusspferd::operator==(string const &lhs, string const &rhs) {
-  return JS_CompareStrings(get_string(lhs), get_string(rhs)) == 0;
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_CompareStrings
+  //return JS_CompareStrings(get_string(lhs), get_string(rhs)) == 0;
+  int32_t result;
+  bool success = JS_CompareStrings(Impl::current_context(), get_string(lhs), get_string(rhs), &result);
+  return (success && (result == 0));
 }
 
 bool flusspferd::operator<(string const &lhs, string const &rhs) {
-  return JS_CompareStrings(get_string(lhs), get_string(rhs)) < 0;
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_CompareStrings
+  //return JS_CompareStrings(get_string(lhs), get_string(rhs)) < 0;
+  int32_t result;
+  bool success = JS_CompareStrings(Impl::current_context(), get_string(lhs), get_string(rhs), &result);
+  return (success && (result < 0));
 }
 
 string string::substr(size_t start, size_t length) const {
