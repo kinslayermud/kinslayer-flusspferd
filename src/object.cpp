@@ -40,6 +40,7 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/object.hpp"
 #include <cassert>
 #include <js/jsapi.h>
+#include <js/jsfriendapi.h>
 
 #if JS_VERSION < 180
 #include <js/jsobj.h>
@@ -60,7 +61,9 @@ void object::seal(bool deep) {
 object object::parent() {
   if (is_null())
     throw exception("Could not get object parent (object is null)");
-  return Impl::wrap_object(JS_GetParent(Impl::current_context(), get()));
+  // Ref: https://bug1131805.bmoattachments.org/attachment.cgi?id=8570319
+  //return Impl::wrap_object(JS_GetParent(Impl::current_context(), get()));
+  return Impl::wrap_object(js::GetGlobalForObjectCrossCompartment(get()));
 }
 
 object object::prototype() {
