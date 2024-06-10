@@ -136,8 +136,11 @@ bool flusspferd::operator<(string const &lhs, string const &rhs) {
 
 string string::substr(size_t start, size_t length) const {
   JSContext *ctx = Impl::current_context();
-  JSString *new_string =
-    JS_NewDependentString(ctx, get_string(*this), start, length);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewDependentString
+  //JSString *new_string =
+  //  JS_NewDependentString(ctx, get_string(*this), start, length);
+  JSString *str = get_string(*this);
+  JSString *new_string = JS_NewDependentString(ctx, JS::HandleString::fromMarkedLocation(&str), start, length);
   if (!new_string)
     throw exception("Could not create substring");
   return Impl::wrap_string(new_string);
