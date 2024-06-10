@@ -147,7 +147,10 @@ string string::concat(string const &a, string const &b) {
   JSContext *ctx = Impl::current_context();
   JSString *left = get_string(a);
   JSString *right = get_string(b);
-  JSString *new_string = JS_ConcatStrings(ctx, left, right);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ConcatStrings
+  //JSString *new_string = JS_ConcatStrings(ctx, left, right);
+  JSString *new_string = JS_ConcatStrings(ctx, JS::HandleString::fromMarkedLocation(&left), JS::HandleString::fromMarkedLocation(&right));
+
   if (!new_string)
     throw exception("Could not concatenate strings");
   return Impl::wrap_string(new_string);
