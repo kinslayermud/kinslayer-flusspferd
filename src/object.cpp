@@ -298,13 +298,25 @@ void object::define_property(
   if (getter_o) sm_flags |= JSPROP_GETTER;
   if (setter_o) sm_flags |= JSPROP_SETTER;
 
-  if (!JS_DefineUCProperty(Impl::current_context(),
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_DefineProperty
+  /* if (!JS_DefineUCProperty(Impl::current_context(),
                            get_const(),
                            (char16_t*)name.data(), name.length(),
                            Impl::get_jsval(v),
-                           *(JSPropertyOp*) &getter_o,
+                           *(JSPropertyOp*) &getter_o, 
                            *(JSPropertyOp*) &setter_o,
-                           sm_flags))
+                           sm_flags)) */
+  JSObject* o = get_const();
+  jsval val = Impl::get_jsval(v);
+  if (!JS_DefineUCProperty(Impl::current_context(), 
+			   JS::HandleObject::fromMarkedLocation(&o),
+			   (char16_t*)name.data(),
+			   name.length(), 
+			   JS::HandleValue::fromMarkedLocation(&val), 
+			   sm_flags,
+			   *(JSNative*)&getter_o,
+			   *(JSNative*)&setter_o))
+
     throw exception("Could not define property");
 }
 
