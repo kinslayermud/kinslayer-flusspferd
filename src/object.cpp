@@ -378,13 +378,24 @@ value object::call(char const *fn, arguments const &arg_) {
 
   JSContext *cx = Impl::current_context();
 
-  bool status = JS_CallFunctionName(
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_CallFunction
+  /* bool status = JS_CallFunctionName(
       cx,
       get(),
       fn,
       arg.size(),
       Impl::get_arguments(arg),
-      Impl::get_jsvalp(result));
+      Impl::get_jsvalp(result)); */
+
+  JSObject* o = get();
+  jsval* rval = Impl::get_jsvalp(result);
+
+  bool status = JS_CallFunctionName(
+  	cx,
+        JS::HandleObject::fromMarkedLocation(&o),
+        fn,
+	JS::HandleValueArray::fromMarkedLocation(arg.size(), Impl::get_arguments(arg)),
+        JS::MutableHandleValue::fromMarkedLocation(rval));
 
   if (!status) {
     if (JS_IsExceptionPending(cx))
