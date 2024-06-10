@@ -105,7 +105,9 @@ public:
     //JS_SetErrorReporter(context, spidermonkey_error_reporter);
     JS_SetErrorReporter(JS_GetRuntime(context), spidermonkey_error_reporter);
 
-    JSObject *global_ = JS_NewObject(context, &global_class, 0x0, 0x0);
+    // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewObject
+    // JSObject *global_ = JS_NewObject(context, &global_class, 0x0, 0x0);
+    JSObject *global_ = JS_NewObject(context, &global_class);
     if(!global_)
       throw exception("Could not create Global Object");
 
@@ -114,7 +116,9 @@ public:
     if(!JS_InitStandardClasses(context, global_))
       throw exception("Could not initialize Global Object");
 
-    JS_DeleteProperty(context, global_, "XML");
+    // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_DeleteProperty
+    //JS_DeleteProperty(context, global_, "XML");
+    JS_DeleteProperty(context, JS::HandleObject::fromMarkedLocation(&global_), "XML");
 
     JS_SetContextPrivate(context, static_cast<void*>(new context_private));
   }
