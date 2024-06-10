@@ -101,8 +101,9 @@ public:
 #ifdef JS_THREADSAFE
     JS_BeginRequest(context);
 #endif
-
-    JS_SetErrorReporter(context, spidermonkey_error_reporter);
+    // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetErrorReporter
+    //JS_SetErrorReporter(context, spidermonkey_error_reporter);
+    JS_SetErrorReporter(JS_GetRuntime(context), spidermonkey_error_reporter);
 
     JSObject *global_ = JS_NewObject(context, &global_class, 0x0, 0x0);
     if(!global_)
