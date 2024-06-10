@@ -97,7 +97,12 @@ std::size_t string::length() const {
 
 flusspferd::js_char16_t const *string::data() const {
   assert(get_string(*this));
-  return (const js_char16_t*)JS_GetStringCharsZAndLength(Impl::current_context(), get_string(*this));
+  // Ref: https://bug609440.bmoattachments.org/attachment.cgi?id=497392 and latest jsapi.h
+  //return (const js_char16_t*)JS_GetStringCharsZAndLength(Impl::current_context(), get_string(*this));
+  JSFlatString* fstr = JS_FlattenString(Impl::current_context(), get_string(*this));
+  assert(fstr);
+  JS::AutoCheckCannotGC nogc;
+  return (const js_char16_t*)JS_GetTwoByteFlatStringChars(nogc, fstr);
 }
 
 char const *string::c_str() const {
