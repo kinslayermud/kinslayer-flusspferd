@@ -221,7 +221,10 @@ object context::global() {
 }
 
 object context::scope_chain() {
-  JSObject *o = JS_GetScopeChain(p->context);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetScopeChain
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetGlobalForScopeChain
+  //JSObject *o = JS_GetScopeChain(p->context);
+  JSObject *o = JS::CurrentGlobalOrNull(p->context);
   if (!o) {
     // Weird! In Spidermonkey 1.7, sometimes it seems like JS_GetScopeChain
     // returns NULL without setting an error.
