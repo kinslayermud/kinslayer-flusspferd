@@ -86,7 +86,8 @@ public:
     if(!context)
       throw exception("Could not create Spidermonkey Context");
 
-    uint32 options = JS_GetOptions(context);
+    // Ref: https://bug880330.bmoattachments.org/attachment.cgi?id=810600
+    /* uint32 options = JS_GetOptions(context);
 
     options |= JSOPTION_VAROBJFIX;
     options |= JSOPTION_STRICT;
@@ -94,7 +95,8 @@ public:
     options &= ~JSOPTION_XML;
 
     JS_SetVersion(context, JSVersion(JS_VERSION));
-    JS_SetOptions(context, options);
+    JS_SetOptions(context, options); */
+
 
 #ifdef JS_THREADSAFE
     JS_BeginRequest(context);
