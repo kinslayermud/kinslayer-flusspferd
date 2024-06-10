@@ -102,12 +102,19 @@ flusspferd::js_char16_t const *string::data() const {
 
 char const *string::c_str() const {
   assert(get_string(*this));
-  return JS_GetStringBytes(get_string(*this));
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetStringBytes
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_EncodeString
+  //return JS_GetStringBytes(get_string(*this));
+  return JS_EncodeString(Impl::current_context(), get_string(*this));
+
 }
 
 std::string string::to_string() const {
   assert(get_string(*this));
-  return JS_GetStringBytes(get_string(*this));
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetStringBytes
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_EncodeString
+  // return JS_GetStringBytes(get_string(*this));
+  return JS_EncodeString(Impl::current_context(), get_string(*this));
 }
 
 std::basic_string<flusspferd::js_char16_t> string::to_utf16_string() const {
