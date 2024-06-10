@@ -270,7 +270,7 @@ void context::clear_thread() {
 }
 
 bool context::set_strict(bool strict) {
-  uint32 options = JS_GetOptions(p->context);
+  /* uint32 options = JS_GetOptions(p->context);
 
   bool old = (options & JSOPTION_STRICT) == JSOPTION_STRICT;
 
@@ -284,7 +284,9 @@ bool context::set_strict(bool strict) {
   else {
     options &= ~JSOPTION_STRICT;
   }
-  JS_SetOptions(p->context, options);
+  JS_SetOptions(p->context, options); 
 
-  return old;
+  return old; */
+
+  return strict;
 }
