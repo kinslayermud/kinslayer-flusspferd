@@ -157,7 +157,7 @@ value object::get_property(value const &id) const {
 bool object::has_property(char const *name) const {
   if (is_null())
     throw exception("Could not check property (object is null)");
-  JSBool foundp;
+  bool foundp;
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_HasProperty
   JSObject* obj = get_const();
   if (!JS_HasProperty(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj), name,
@@ -175,7 +175,7 @@ bool object::has_property(value const &id) const {
     throw exception("Could not check property (object is null)");
   local_root_scope scope;
   string name = id.to_string();
-  JSBool foundp;
+  bool foundp;
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetProperty
   JSObject* obj = get_const();
   if (!JS_HasUCProperty(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj),
@@ -201,7 +201,7 @@ bool object::has_own_property(value const &id) const {
   if (is_null())
     throw exception("Could not check property (object is null)");
 
-  JSBool has;
+  bool has;
 #if JS_VERSION >= 180
   string name = id.to_string();
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_AlreadyHasOwnProperty
@@ -212,7 +212,7 @@ bool object::has_own_property(value const &id) const {
   JSObject *obj = get_const();
   jsval argv[] = { Impl::get_jsval(id) };
   jsval vp;
-  JSBool ret = js_HasOwnPropertyHelper(Impl::current_context(), obj,
+  bool ret = js_HasOwnPropertyHelper(Impl::current_context(), obj,
                                        obj->map->ops->lookupProperty, 1, argv, 
                                        &vp);
   has = JSVAL_TO_BOOLEAN(vp);
@@ -322,7 +322,7 @@ value object::apply(object const &fn, arguments const &arg_) {
 
   JSContext *cx = Impl::current_context();
 
-  JSBool status = JS_CallFunctionValue(
+  bool status = JS_CallFunctionValue(
       cx,
       get(),
       Impl::get_jsval(fnv),
@@ -350,7 +350,7 @@ value object::call(char const *fn, arguments const &arg_) {
 
   JSContext *cx = Impl::current_context();
 
-  JSBool status = JS_CallFunctionName(
+  bool status = JS_CallFunctionName(
       cx,
       get(),
       fn,
@@ -415,14 +415,14 @@ bool object::get_property_attributes(
 
   flusspferd::root_string name_r(name);
 
-  JSBool found;
+  bool found;
   void *getter_op, *setter_op;
   uintN sm_flags;
 
   attrs.flags = no_property_flag;
   attrs.getter = boost::none;
   attrs.setter = boost::none;
-  JSBool success = JS_GetUCPropertyAttrsGetterAndSetter(
+  bool success = JS_GetUCPropertyAttrsGetterAndSetter(
           Impl::current_context(), get_const(), (char16_t*)name.data(), name.length(),
           &sm_flags, &found,
           (JSPropertyOp*)&getter_op, (JSPropertyOp*)&setter_op);
