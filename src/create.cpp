@@ -84,28 +84,23 @@ function flusspferd::create_function(
       ++it)
     argnames_c.push_back(it->c_str());
 
- /* 
-  *
-   Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Compile
-	      
-  JS_CompileScript(JSContext* cx, const char* ascii, size_t length,
-		                   const JS::CompileOptions& options,
-				                    JS::MutableHandleScript script); 
-						    
-						    
-						    */
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::CompileFunction
+  //JSFunction *fun =
+   //   JS_CompileUCFunction(
+   //     cx,
+   //     0,
+   //     name.c_str(),
+   //     n_args,
+   //     &argnames_c[0],
+   //     (const char16_t*)body.data(), // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
+   //     body.length(),
+   //     file.c_str(),
+   //     line);
 
-  JSFunction *fun =
-      JS_CompileUCFunction(
-        cx,
-        0,
-        name.c_str(),
-        n_args,
-        &argnames_c[0],
-        (const char16_t*)body.data(), // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
-        body.length(),
-        file.c_str(),
-        line);
+  JSFunction* fun;
+  JS::AutoObjectVector aov(cx);
+  bool result = JS::CompileFunction(cx, aov, JS::CompileOptions(cx), name.c_str(), n_args, &argnames_c[0], (const char16_t*)body.data(), body.length(), JS::MutableHandleFunction::fromMarkedLocation(&fun));
+
 
   if (!fun)
     throw exception("Could not compile function");
