@@ -461,10 +461,14 @@ bool object::get_property_attributes(
   attrs.flags = no_property_flag;
   attrs.getter = boost::none;
   attrs.setter = boost::none;
-  bool success = JS_GetUCPropertyAttrsGetterAndSetter(
-          Impl::current_context(), get_const(), (char16_t*)name.data(), name.length(),
-          &sm_flags, &found,
-          (JSPropertyOp*)&getter_op, (JSPropertyOp*)&setter_op);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetPropertyAttributes
+  //bool success = JS_GetUCPropertyAttrsGetterAndSetter(
+  //        Impl::current_context(), get_const(), (char16_t*)name.data(), name.length(),
+  //        &sm_flags, &found,
+  //        (JSPropertyOp*)&getter_op, (JSPropertyOp*)&setter_op);
+  JSPropertyDescriptor desc;
+  JSObject* o = get_const();
+  bool success = JS_GetOwnPropertyDescriptor(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&o), (char*)name.data(), JS::MutableHandle<JSPropertyDescriptor>::fromMarkedLocation(&desc));
 
   if (!success)
     throw exception("Could not query property attributes");
@@ -480,6 +484,11 @@ bool object::get_property_attributes(
     attrs.flags = attrs.flags | read_only_property;
   if (sm_flags & JSPROP_SHARED)
     attrs.flags = attrs.flags | shared_property;
+
+  // Ref: jsapi.h 
+  // New structure provides getter and setter members
+  getter_op = (void*)desc.getter;
+  setter_op = (void*)desc.setter;
 
   if (getter_op) {
     if (sm_flags & JSPROP_GETTER) {
