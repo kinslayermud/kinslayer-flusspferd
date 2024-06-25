@@ -43,12 +43,14 @@ public:
   impl()
     //: id(JSVAL_VOID) 
     : id(JS::UndefinedValue().toInt32()) // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Value#jsval
+
   {}
 
   root_value root_iterator;
   object iterator;
   jsid id;
   root_value root_cache;
+  uint32 next;
 };
 
 property_iterator::property_iterator()
@@ -57,21 +59,22 @@ property_iterator::property_iterator()
 property_iterator::property_iterator(object const &o_)
   : p(new impl)
 {
-  object o = o_;
+  target = o_;
 
   local_root_scope scope;
 
-  if (o.is_null())
+  if (target.is_null())
     throw exception("Could not create property iterator (object is null)");
 
-  JSObject *iterator =
+  // Ref: https://bugzilla.mozilla.org/attachment.cgi?id=8503746&action=diff
+  /*JSObject *iterator =
     JS_NewPropertyIterator(Impl::current_context(), Impl::get_object(o));
 
-  if (!iterator)
-    throw exception("Could not create property iterator");
+  //if(!p->attrs.leng)
+  //  throw exception("Could not create property iterator");
 
-  p->iterator = Impl::wrap_object(iterator);
-  p->root_iterator = p->iterator;
+  /*p->iterator = Impl::wrap_object(iterator);
+  p->root_iterator = p->iterator; */
 
   increment();
 }
@@ -94,9 +97,21 @@ property_iterator::~property_iterator()
 {}
 
 void property_iterator::increment() {
-  if (!JS_NextProperty(
+  // Ref: https://bugzilla.mozilla.org/attachment.cgi?id=8503746&action=diff
+  /*if (!JS_NextProperty(
         Impl::current_context(), Impl::get_object(p->iterator), &p->id))
-    throw exception("Could not load / increment property iterator");
+    throw exception("Could not load / increment property iterator");*/
+
+  JSObject* op = Impl::get_object(target);
+  JS::IdVector attrs(Impl::current_context());
+  JS_Enumerate(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&op), JS::MutableHandle<JS::IdVector>::fromMarkedLocation(&attrs)); 
+  // Get next and increase next position
+  p->next++;
+  if(p->next >= attrs.length())
+    p->id = JSID_VOID;
+  else
+    p->id = attrs[p->next];
+
 
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_IdToValue
   jsval idVal;
