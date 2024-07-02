@@ -46,7 +46,9 @@ class native_object_base::impl {
 public:
   //static void finalize(JSContext *ctx, JSObject *obj); // Ref: https://bug737365.bmoattachments.org/attachment.cgi?id=607922
   static void finalize(JSFreeOp *fop, JSObject *obj);
-  static bool call_helper(JSContext *, JSObject *, uintN, jsval *, jsval *);
+  // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSNative
+  // static bool call_helper(JSContext *, JSObject *, uintN, jsval *, jsval *);
+  static bool call_helper(JSContext *cx, unsigned argc, JS::Value *vp);
 
 #if JS_VERSION >= 180
   static void trace_op(JSTracer *trc, JSObject *obj);
@@ -88,10 +90,10 @@ static const unsigned int basic_flags =
 JSClass native_object_base::impl::native_object_class = {
   "NativeObject",
   basic_flags,
-  &native_object_base::impl::property_op<native_object_base::property_add>,
-  &native_object_base::impl::property_op<native_object_base::property_delete>,
-  &native_object_base::impl::property_op<native_object_base::property_get>,
-  &native_object_base::impl::property_op<native_object_base::property_set>,
+  0, //&native_object_base::impl::property_op<native_object_base::property_add>,
+  0, //&native_object_base::impl::property_op<native_object_base::property_delete>,
+  0, //&native_object_base::impl::property_op<native_object_base::property_get>,
+  0, //&native_object_base::impl::property_op<native_object_base::property_set>,
   0, //JS_EnumerateStub, // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass
   (JSResolveOp) &native_object_base::impl::new_resolve,
   0, //JS_ConvertStub, // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass
@@ -102,17 +104,17 @@ JSClass native_object_base::impl::native_object_class = {
   0,
   0,
   0,
-  MARK_TRACE_OP,
+  (void*)MARK_TRACE_OP,
   0
 };
 
 JSClass native_object_base::impl::native_enumerable_object_class = {
   "NativeObject",
   basic_flags, // | JSCLASS_NEW_ENUMERATE, // Ref: https://bug1097267.bmoattachments.org/attachment.cgi?id=8526676
-  &native_object_base::impl::property_op<native_object_base::property_add>,
-  &native_object_base::impl::property_op<native_object_base::property_delete>,
-  &native_object_base::impl::property_op<native_object_base::property_get>,
-  &native_object_base::impl::property_op<native_object_base::property_set>,
+  0, //&native_object_base::impl::property_op<native_object_base::property_add>,
+  0, //&native_object_base::impl::property_op<native_object_base::property_delete>,
+  0, //&native_object_base::impl::property_op<native_object_base::property_get>,
+  0, //&native_object_base::impl::property_op<native_object_base::property_set>,
   (JSEnumerateOp) &native_object_base::impl::new_enumerate,
   (JSResolveOp) &native_object_base::impl::new_resolve,
   0, //JS_ConvertStub, // https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass
@@ -123,7 +125,7 @@ JSClass native_object_base::impl::native_enumerable_object_class = {
   0,
   0,
   0,
-  MARK_TRACE_OP,
+  (void*)MARK_TRACE_OP,
   0
 };
 
@@ -262,33 +264,40 @@ void native_object_base::impl::finalize(JSFreeOp *fop, JSObject *obj) {
   }
 }
 
-bool native_object_base::impl::call_helper(
-    JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+// Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSNative
+//bool native_object_base::impl::call_helper(JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+bool call_helper(JSContext *ctx, unsigned argc, JS::Value *vp)
+
 {
   FLUSSPFERD_CALLBACK_BEGIN {
     current_context_scope scope(Impl::wrap_context(ctx));
-
+    // Ref: https://hg.mozilla.org/mozilla-central/file/default/js/public/CallArgs.h
+    JS::CallArgs argv = JS::CallArgsFromVp(argc, vp);
+    JSObject& obj = argv.callee();
     //JSObject *function = JSVAL_TO_OBJECT(argv[-2]); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ValueToObject
     JSObject *function;
-    JS_ValueToObject(ctx, JS::HandleValue::fromMarkedLocation(&argv[-2]), JS::MutableHandleObject::fromMarkedLocation(&function));
+    jsval v = argv[-2].get();
+    JS_ValueToObject(ctx, JS::HandleValue::fromMarkedLocation(&v), JS::MutableHandleObject::fromMarkedLocation(&function));
 
     native_object_base *self = 0;
     
     try {
-      self = &native_object_base::get_native(Impl::wrap_object(obj));
+      self = &native_object_base::get_native(Impl::wrap_object(&obj));
     } catch (exception &) {
       self = &native_object_base::get_native(Impl::wrap_object(function));
     }
 
     call_context x;
 
-    x.self = Impl::wrap_object(obj);
+    x.self = Impl::wrap_object(&obj);
     x.self_native = self;
-    x.arg = Impl::arguments_impl(argc, argv);
-    x.result.bind(Impl::wrap_jsvalp(rval));
+    x.arg = Impl::arguments_impl(argv.length(), argv.array());
+    jsval rval;
+    x.result.bind(Impl::wrap_jsvalp(&rval));
     x.function = Impl::wrap_object(function);
 
     self->self_call(x);
+    argv.rval().set(rval);
   } FLUSSPFERD_CALLBACK_END;
 }
 
