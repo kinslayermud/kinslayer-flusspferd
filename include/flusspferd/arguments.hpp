@@ -27,6 +27,8 @@ THE SOFTWARE.
 #ifndef FLUSSPFERD_ARGUMENTS_HPP
 #define FLUSSPFERD_ARGUMENTS_HPP
 
+#include "flusspferd/spidermonkey/adapter.hpp"
+
 #include "spidermonkey/arguments.hpp"
 #include "root.hpp"
 #include "value.hpp"
