@@ -102,6 +102,7 @@ private:
 private:
   class impl;
   boost::scoped_ptr<impl> p;
+  object target;
 };
 
 }
