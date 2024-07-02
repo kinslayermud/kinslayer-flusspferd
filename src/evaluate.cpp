@@ -65,7 +65,7 @@ value flusspferd::evaluate_in_scope(
   options.setFile(file);
 
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Evaluate   we cast safely char -> char16_t
-  JSBool ok = JS::Evaluate(cx, scopeChain, options, (char16_t*)source, n, JS::MutableHandleValue::fromMarkedLocation(&rval));
+  bool ok = JS::Evaluate(cx, scopeChain, options, (char16_t*)source, n, JS::MutableHandleValue::fromMarkedLocation(&rval));
 
   if(!ok) {
     exception e("Could not evaluate script");
@@ -127,7 +127,7 @@ value flusspferd::execute(char const *filename, object const &scope_) {
   JS::AutoObjectVector scopeVector(cx);
   scopeVector.append(scope);
 
-  JSBool ok = JS_ExecuteScript(cx, scopeVector, JS::HandleScript::fromMarkedLocation(&script), JS::MutableHandleValue::fromMarkedLocation(Impl::get_jsvalp(result))); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ExecuteScript
+  bool ok = JS_ExecuteScript(cx, scopeVector, JS::HandleScript::fromMarkedLocation(&script), JS::MutableHandleValue::fromMarkedLocation(Impl::get_jsvalp(result))); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ExecuteScript
 
   if (!ok) {
     exception e("Script execution failed");
