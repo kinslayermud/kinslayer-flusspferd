@@ -40,9 +40,6 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/value.hpp"
 #include <js/jsapi.h>
 
-JS::PersistentRootedValue* pr;
-JS::PersistentRootedObject* po;
-
 namespace flusspferd { namespace detail {
 
 template<typename T>

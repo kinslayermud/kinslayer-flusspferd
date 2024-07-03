@@ -93,6 +93,8 @@ public:
 
 private:
   void *get_gcptr();
+  JS::PersistentRootedValue* pr;
+  JS::PersistentRootedObject* po;
 };
 
 }
