@@ -34,6 +34,8 @@ THE SOFTWARE.
 #include "flusspferd/modules.hpp"
 
 #include <js/jsapi.h>
+#include <js/CompilationAndEvaluation.h>
+#include <js/SourceText.h>
 
 #include <cstring>
 
@@ -58,14 +60,22 @@ value flusspferd::evaluate_in_scope(
   JSContext *cx = Impl::current_context();
 
   jsval rval;
-  JS::AutoObjectVector scopeChain(cx);
-  scopeChain.append(Impl::get_object(scope));
+  // Ref: spidermonkey 128
+  //JS::AutoObjectVector scopeChain(cx);
+  JS::RootedObjectVector scopeChain(cx);
+  bool result = scopeChain.append(Impl::get_object(scope));
   JS::CompileOptions options(cx);
   options.setLine(line);
   options.setFile(file);
 
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Evaluate   we cast safely char -> char16_t
-  bool ok = JS::Evaluate(cx, scopeChain, options, (char16_t*)source, n, JS::MutableHandleValue::fromMarkedLocation(&rval));
+  // bool ok = JS::Evaluate(cx, scopeChain, options, (char16_t*)source, n, JS::MutableHandleValue::fromMarkedLocation(&rval));
+  // ref : spidermonkey 128
+  JS::SourceText<char16_t> sourceText;
+  bool ok = sourceText.init(cx, (char16_t*)source, n, JS::SourceOwnership::Borrowed);
+  if(!ok) throw exception("Could not create sourceText");
+
+  ok = JS::Evaluate(cx, options, sourceText, JS::MutableHandleValue::fromMarkedLocation(&rval));
 
   if(!ok) {
     exception e("Could not evaluate script");
@@ -107,14 +117,21 @@ value flusspferd::execute(char const *filename, object const &scope_) {
   options.setFile(filename);
 
   JSScript *script;
-  bool success  = JS_CompileUCScript(
-    cx, 
-    (char16_t*)module_text.data(), module_text.length(), // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
-    options, 
-    JS::MutableHandleScript::fromMarkedLocation(&script)
-  );
+  // Ref:Spidermonkey 128
+  //bool success  = JS_CompileUCScript(
+  //  cx, 
+  //  (char16_t*)module_text.data(), module_text.length(), // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
+  //  options, 
+  //  JS::MutableHandleScript::fromMarkedLocation(&script)
+  //);
+  JS::SourceText<char16_t> sourceText; 
+  bool success = sourceText.init(cx, (char16_t*)module_text.data(), module_text.length(), JS::SourceOwnership::Borrowed);
+  if (!success) throw exception("Sourcetext initialization failed");
+  
+  script = JS::Compile(cx, options, sourceText);
 
-  if (!success || !script) {
+  //if (!success || !script) {
+  if (!script) {
     exception e("Could not compile script");
     //JS_SetOptions(cx, oldopts);
     throw e;
@@ -123,9 +140,11 @@ value flusspferd::execute(char const *filename, object const &scope_) {
   //JS_SetOptions(cx, oldopts);
 
   value result;
-
-  JS::AutoObjectVector scopeVector(cx);
-  scopeVector.append(scope);
+  
+  // Ref: SpiderMonkey 128
+  //JS::AutoObjectVector scopeVector(cx);
+  JS::RootedObjectVector scopeVector(cx);
+  result = scopeVector.append(scope);
 
   bool ok = JS_ExecuteScript(cx, scopeVector, JS::HandleScript::fromMarkedLocation(&script), JS::MutableHandleValue::fromMarkedLocation(Impl::get_jsvalp(result))); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ExecuteScript
 
@@ -165,7 +184,9 @@ bool flusspferd::is_compilable(char const *source, std::size_t length,
     scope = Impl::get_object(flusspferd::global());
   }
 
-  return JS_BufferIsCompilableUnit(cx, JS::HandleObject::fromMarkedLocation(&scope), source, length);
+  // REf: spidermonkey 128
+  //return JS_BufferIsCompilableUnit(cx, JS::HandleObject::fromMarkedLocation(&scope), source, length);
+  return JS_Utf8BufferIsCompilableUnit(cx, JS::HandleObject::fromMarkedLocation(&scope), source, length);
 }
 
 bool flusspferd::is_compilable(char const *source, object const &scope) {
