@@ -36,6 +36,9 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/object.hpp"
 #include "flusspferd/spidermonkey/init.hpp"
 #include <js/jsapi.h>
+#include <js/Array.h>
+#include <js/CompilationAndEvaluation.h>
+#include <js/SourceText.h>
 
 using namespace flusspferd;
 
@@ -51,7 +54,7 @@ object flusspferd::create_object(object const &proto) {
 }
 
 array flusspferd::create_array(unsigned length) {
-  JSObject *o = JS_NewArrayObject(Impl::current_context(), length); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewArrayObject
+  JSObject *o = JS::NewArrayObject(Impl::current_context(), length); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewArrayObject
   if (!o)
     throw exception("Could not create array");
 
@@ -98,9 +101,16 @@ function flusspferd::create_function(
    //     line);
 
   JSFunction* fun;
-  JS::AutoObjectVector aov(cx);
-  bool result = JS::CompileFunction(cx, aov, JS::CompileOptions(cx), name.c_str(), n_args, &argnames_c[0], (const char16_t*)body.data(), body.length(), JS::MutableHandleFunction::fromMarkedLocation(&fun));
-
+  // Ref: Spidermonkey 128
+  //JS::AutoObjectVector aov(cx);
+  JS::RootedObjectVector RootedObjectVector(cx);
+  JS::HandleObjectVector aov(RootedObjectVector);
+  JS::SourceText<char16_t> srcText; 
+  bool initialized = srcText.init(cx, (const char16_t*)body.data(), body.length(), JS::SourceOwnership::Borrowed);
+  if (!initialized) throw exception("Could not compile function");
+  // Ref: spiderMonkey 128
+  //bool result = JS::CompileFunction(cx, aov, JS::CompileOptions(cx), name.c_str(), n_args, &argnames_c[0], (const char16_t*)body.data(), body.length(), JS::MutableHandleFunction::fromMarkedLocation(&fun));
+  fun = JS::CompileFunction(cx, aov, JS::CompileOptions(cx), name.c_str(), n_args, &argnames_c[0], srcText);
 
   if (!fun)
     throw exception("Could not compile function");
