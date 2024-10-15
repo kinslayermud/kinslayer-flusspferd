@@ -27,7 +27,7 @@ THE SOFTWARE.
 #ifndef FLUSSPFERD_SPIDERMONKEY_ADAPTER_HPP
 #define FLUSSPFERD_SPIDERMONKEY_ADAPTER_HPP
 
-#include <js/js/LegacyIntTypes.h>
+//#include <js/js/LegacyIntTypes.h>
 #include <js/jsapi.h>
 
 #define JS_VERSION 200  // Something higher than 180 does the work
@@ -36,8 +36,8 @@ THE SOFTWARE.
 #define INT_FITS_IN_JSVAL  true
 
 typedef JS::Value jsval;
-typedef JSUint32 jsuint;
-typedef JSUint32 uintN;
+typedef unsigned jsuint;
+typedef unsigned uintN;
 typedef double jsdouble;
 
 #endif /* FLUSSPFERD_SPIDERMONKEY_ADAPTER_HPP */
