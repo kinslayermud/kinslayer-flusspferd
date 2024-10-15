@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "flusspferd/exception.hpp"
 #include "flusspferd/spidermonkey/init.hpp"
 #include <js/jsapi.h>
+#include <js/Array.h>
 
 using namespace flusspferd;
 
@@ -47,19 +48,19 @@ void array::check() {
   if (is_null())
     throw exception("Object is null");
   bool isOk;
-  if (!JS_IsArrayObject(Impl::current_context(), JS::RootedObject(Impl::current_context(), get()), &isOk))
+  if (!JS::IsArrayObject(Impl::current_context(), JS::RootedObject(Impl::current_context(), get()), &isOk))
     throw exception("Object is not array");
 }
 
 std::size_t array::length() const {
   jsuint length;
-  if (!JS_GetArrayLength(Impl::current_context(), JS::RootedObject(Impl::current_context(), get_const()), &length))
+  if (!JS::GetArrayLength(Impl::current_context(), JS::RootedObject(Impl::current_context(), get_const()), &length))
     throw exception("Could not get array length");
   return length;
 }
 
 void array::set_length(std::size_t length) {
-  if (!JS_SetArrayLength(Impl::current_context(), JS::RootedObject(Impl::current_context(), get()), length))
+  if (!JS::SetArrayLength(Impl::current_context(), JS::RootedObject(Impl::current_context(), get()), length))
     throw exception("Could not set array length");
 }
 
