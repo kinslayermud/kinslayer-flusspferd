@@ -36,13 +36,18 @@ THE SOFTWARE.
 #include <boost/utility/in_place_factory.hpp>
 #include <js/jsapi.h>
 
+// REf: spdmky 128
+constexpr const jsid JSID_VOID;
+
 using namespace flusspferd;
 
 class property_iterator::impl {
 public:
   impl()
     //: id(JSVAL_VOID) 
-    : id(JS::UndefinedValue().toInt32()) // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Value#jsval
+    //: id(JS::UndefinedValue().toInt32()) // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::Value#jsval
+    // ref: spdmky 128
+    : id(JSID_VOID)
 
   {}
 
@@ -50,7 +55,9 @@ public:
   object iterator;
   jsid id;
   root_value root_cache;
-  uint32 next;
+  // ref: spdmky 128
+  //uint32 next;
+  int32_t next;
 };
 
 property_iterator::property_iterator()
