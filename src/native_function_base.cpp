@@ -35,6 +35,7 @@ THE SOFTWARE.
 #include "flusspferd/spidermonkey/function.hpp"
 #include "flusspferd/current_context_scope.hpp"
 #include <js/jsapi.h>
+#include <js/Object.h>
 
 using namespace flusspferd;
 
@@ -88,7 +89,8 @@ native_function_base::~native_function_base() { }
 
 JSClass native_function_base::impl::function_priv_class = {
   "FunctionParent",
-  JSCLASS_HAS_PRIVATE
+  // Ref: spdmky 128
+  //JSCLASS_HAS_PRIVATE
 #if JS_VERSION >= 180
   //| JSCLASS_MARK_IS_TRACE // Ref: https://bugzilla.mozilla.org/attachment.cgi?id=516449&action=diff and https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass.flags
 #endif
@@ -140,9 +142,13 @@ function native_function_base::create_function() {
     JSObject *obj = Impl::get_object(*this);
 
     //JS_SetReservedSlot(ctx, obj, 0, OBJECT_TO_JSVAL(priv)); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS::ObjectValue && https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetReservedSlot
-    JS_SetReservedSlot(obj, 0, JS::ObjectValue(*priv));
+    // Ref: spdmky 128
+    // JS_SetReservedSlot(obj, 0, JS::ObjectValue(*priv));
+    JS::SetReservedSlot(obj, 0, JS::ObjectValue(*priv));
     //JS_SetReservedSlot(ctx, obj, 1, PRIVATE_TO_JSVAL(this)); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/PRIVATE_TO_JSVAL && https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetReservedSlot
-    JS_SetReservedSlot(obj, 1, JS::PrivateValue(this));
+    // Ref: spdmky 128
+    //  JS_SetReservedSlot(obj, 1, JS::PrivateValue(this));
+    JS::SetReservedSlot(obj, 1, JS::PrivateValue(this));
   }
 
   return *static_cast<function *>(this);
@@ -165,6 +171,7 @@ bool native_function_base::impl::call_helper(JSContext *ctx,  uintN argc, jsval 
     jsval self_val;
 
     //if (!JS_GetReservedSlot(ctx, function, 1, &self_val)) // https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetReservedSlot
+    // ref: spdmky 128
     self_val = JS_GetReservedSlot(function, 1);
     if (self_val.isNull()) // https://bug952650.bmoattachments.org/attachment.cgi?id=8413485
       throw exception("Could not call native function");
@@ -246,7 +253,8 @@ native_function_base *native_function_base::get_native(object const &o_) {
   if (self)
     return self;
 
-  if (!JS_ObjectIsFunction(ctx, p))
+  //if (!JS_ObjectIsFunction(ctx, p))
+  if (!JS_ObjectIsFunction(p))
     throw exception("Could not get native function pointer (no function)");
 
   jsval p_val;
