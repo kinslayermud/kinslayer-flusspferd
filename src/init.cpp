@@ -61,13 +61,16 @@ public:
 //    if (!JS_CStringsAreUTF8())
 //      throw std::runtime_error("UTF8 support in Spidermonkey required");
 
-    runtime = JS_NewRuntime( FLUSSPFERD_MAX_BYTES );
+    // REf: spdmk 128
+    //runtime = JS_NewRuntime( FLUSSPFERD_MAX_BYTES );
+    runtime = JS_GetRuntime(Impl::current_context());
     if (!runtime) {
       throw std::runtime_error("Could not create Spidermonkey Runtime");
     }
   }
   ~impl() {
-    JS_DestroyRuntime(runtime);
+    // Ref: spdmky 128
+    // JS_DestroyRuntime(runtime);
   }
 
   JSRuntime *runtime;
