@@ -74,8 +74,16 @@ std::size_t function::arity() const {
 string function::name() const {
   if (is_null())
     throw exception("Could not get function name: object is null");
-  return Impl::wrap_string(
-      JS_GetFunctionId(Impl::function_impl::get_const()));
+ 
+  // Ref: spdm 128 
+  //return Impl::wrap_string(
+  //    JS_GetFunctionId(Impl::function_impl::get_const()));
+  JSString* str;
+  bool success = JS_GetFunctionId(Impl::current_context(), JS::Handle<JSFunction*>::fromMarkedLocation((JSFunction* const*)Impl::function_impl::get_const()), JS::MutableHandle<JSString*>::fromMarkedLocation(&str));
+  if (!success)
+      throw exception("Could not get function name: JS_GetFunctionId failed!");
+
+  return Impl::wrap_string(str);
 }
 
 object Impl::function_impl::get_object() {
