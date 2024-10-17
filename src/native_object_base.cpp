@@ -40,12 +40,14 @@ THE SOFTWARE.
 #include <unordered_map>
 #include <boost/variant.hpp>
 
+#include "js/Object.h"
+
 using namespace flusspferd;
 
 class native_object_base::impl {
 public:
   //static void finalize(JSContext *ctx, JSObject *obj); // Ref: https://bug737365.bmoattachments.org/attachment.cgi?id=607922
-  static void finalize(JSFreeOp *fop, JSObject *obj);
+  static void finalize(JS::GCContext* gcx, JSObject* obj);
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSNative
   // static bool call_helper(JSContext *, JSObject *, uintN, jsval *, jsval *);
   static bool call_helper(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -65,20 +67,21 @@ public:
   //  JSIterateOp enum_op, jsval *statep, jsid *idp);
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSNewEnumerateOp
   // Ref: https://bug1097267.bmoattachments.org/attachment.cgi?id=8526676
-  static bool new_enumerate(JSContext *cx, JSObject *obj, JS::AutoIdVector &properties);
+  static bool new_enumerate(JSContext *ctx, JSObject *obj, JS::MutableHandle<JS::StackGCVector<JS::PropertyKey>> properties, bool result);
 
 public:
   static JSClass native_object_class;
   static JSClass native_enumerable_object_class;
 };
 
-static const unsigned int basic_flags =
-  JSCLASS_HAS_PRIVATE
-  //| JSCLASS_NEW_RESOLVE // Ref: https://bug993026.bmoattachments.org/attachment.cgi?id=8515452
-#if JS_VERSION >= 180
-  //| JSCLASS_MARK_IS_TRACE // Ref: https://bug638291.bmoattachments.org/attachment.cgi?id=516449
-#endif
-  ;
+// Ref: spdmky 128
+//static const unsigned int basic_flags =
+//  JSCLASS_HAS_PRIVATE
+//  //| JSCLASS_NEW_RESOLVE // Ref: https://bug993026.bmoattachments.org/attachment.cgi?id=8515452
+//#if JS_VERSION >= 180
+//  //| JSCLASS_MARK_IS_TRACE // Ref: https://bug638291.bmoattachments.org/attachment.cgi?id=516449
+//#endif
+//  ;
 
 #if JS_VERSION >= 180
 //#define MARK_TRACE_OP ((JSMarkOp) &native_object_base::impl::trace_op)
@@ -87,30 +90,52 @@ static const unsigned int basic_flags =
 #define MARK_TRACE_OP (&native_object_base::impl::mark_op)
 #endif
 
+#ifdef OLD
 JSClass native_object_base::impl::native_object_class = {
   "NativeObject",
-  basic_flags,
+  // Ref spdmky 128
+  0,//basic_flags,
   0, //&native_object_base::impl::property_op<native_object_base::property_add>,
   0, //&native_object_base::impl::property_op<native_object_base::property_delete>,
   0, //&native_object_base::impl::property_op<native_object_base::property_get>,
   0, //&native_object_base::impl::property_op<native_object_base::property_set>,
-  0, //JS_EnumerateStub, // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass
+  //0, //JS_EnumerateStub, // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass
   (JSResolveOp) &native_object_base::impl::new_resolve,
   0, //JS_ConvertStub, // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass
   &native_object_base::impl::finalize,
-  0,
-  0,
+  //0,
+  //0,
   &native_object_base::impl::call_helper,
   0,
+  //0,
+  //0,
+  (void*)MARK_TRACE_OP
+};
+#else
+JSClassOps native_object_base::ops1 = {
   0,
   0,
-  (void*)MARK_TRACE_OP,
-  0
+  0,
+  (JSNewEnumerateOp) &native_object_base::impl::new_enumerate,
+  (JSResolveOp) &native_object_base::impl::new_resolve,
+  0,
+  &native_object_base::impl::finalize,
+  &native_object_base::impl::call_helper,
+  0,
+  MARK_TRACE_OP
 };
 
+JSClass native_object_base::impl::native_object_class = {
+	"NativeObject", 0, &ops1
+};
+
+#endif
+
+#ifdef OLD
 JSClass native_object_base::impl::native_enumerable_object_class = {
   "NativeObject",
-  basic_flags, // | JSCLASS_NEW_ENUMERATE, // Ref: https://bug1097267.bmoattachments.org/attachment.cgi?id=8526676
+  // REf: spdmky 128
+  0, //basic_flags, // | JSCLASS_NEW_ENUMERATE, // Ref: https://bug1097267.bmoattachments.org/attachment.cgi?id=8526676
   0, //&native_object_base::impl::property_op<native_object_base::property_add>,
   0, //&native_object_base::impl::property_op<native_object_base::property_delete>,
   0, //&native_object_base::impl::property_op<native_object_base::property_get>,
@@ -128,6 +153,25 @@ JSClass native_object_base::impl::native_enumerable_object_class = {
   (void*)MARK_TRACE_OP,
   0
 };
+#else
+
+JSClassOps native_object_base::ops2 = {
+  0,
+  0,
+  0,
+  (JSNewEnumerateOp) &native_object_base::impl::new_enumerate,
+  (JSResolveOp) &native_object_base::impl::new_resolve,
+  0,
+  &native_object_base::impl::finalize,
+  &native_object_base::impl::call_helper,
+  0,
+  MARK_TRACE_OP
+};
+
+JSClass native_object_base::impl::native_enumerable_object_class = {
+	  "NativeObject", 0, &ops2
+};
+#endif
 
 native_object_base::native_object_base(object const &o) {
   p = new boost::scoped_ptr<impl>(new impl);
@@ -140,7 +184,8 @@ native_object_base::~native_object_base() {
   if (!is_null()) {
     // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetPrivate
     //JS_SetPrivate(Impl::current_context(), get(), 0);
-    JS_SetPrivate(get(), 0);
+    // Ref: spdmky 128
+    //JS_SetPrivate(get(), 0);
   }
 }
 
@@ -153,9 +198,11 @@ void native_object_base::load_into(object const &o) {
   if (!is_null()) {
     // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetPrivate
     //if (!JS_SetPrivate(Impl::current_context(), Impl::get_object(o), this))
-    JS_SetPrivate(Impl::get_object(o), this);
-    if (!JS_GetPrivate(Impl::get_object(o)))
-      throw exception("Could not create native object (private data)");
+    //
+    // Ref Spdmky 128
+    //JS_SetPrivate(Impl::get_object(o), this);
+    //if (!JS_GetPrivate(Impl::get_object(o)))
+    //  throw exception("Could not create native object (private data)");
   }
 }
 
@@ -169,17 +216,22 @@ bool native_object_base::is_object_native(object const &o_) {
   JSObject *jso = Impl::get_object(o);
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GET_CLASS
   //JSClass *classp = JS_GET_CLASS(ctx, jso);
-  const JSClass *classp = JS_GetClass(jso);
+  // Ref spmky 128
+  //const JSClass *classp = JS_GetClass(jso);
+  const JSClass *classp = JS::GetClass(jso);
 
-  if (!classp || classp->finalize != &native_object_base::impl::finalize)
+  // Ref: spdmky 128
+  //if (!classp || classp->finalize != &native_object_base::impl::finalize)
+  if (!classp /*|| classp->finalize != &native_object_base::impl::finalize */) 
     return false;
 
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetPrivate
   //void *priv = JS_GetPrivate(ctx, jso);
-  void *priv = JS_GetPrivate(jso);
 
-  if (!priv)
-    return false;
+  // Ref: spdmky 128
+  //void *priv = JS_GetPrivate(jso);
+  // if (!priv)
+  //  return false;
 
   return true;
 }
@@ -194,19 +246,25 @@ native_object_base &native_object_base::get_native(object const &o_) {
   JSObject *jso = Impl::get_object(o);
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GET_CLASS
   //JSClass *classp = JS_GET_CLASS(ctx, jso);
-  const JSClass *classp = JS_GetClass(jso);
+  // Ref: spdmky 128
+  //const JSClass *classp = JS_GetClass(jso);
+  const JSClass *classp = JS::GetClass(jso);
 
-  if (!classp || classp->finalize != &native_object_base::impl::finalize)
+  // Ref spmky 128
+  // if (!classp || classp->finalize != &native_object_base::impl::finalize)
+  if (!classp /*|| classp->finalize != &native_object_base::impl::finalizei */)
     throw exception("Object is not native");
 
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetPrivate
   //void *priv = JS_GetPrivate(ctx, jso);
-  void *priv = JS_GetPrivate(jso);
 
-  if (!priv)
-    throw exception("Object is not native");
+  // Ref: spdmky 128
+  //void *priv = JS_GetPrivate(jso);
+  //if (!priv)
+  //  throw exception("Object is not native");
+  //return *static_cast<native_object_base*>(priv);
 
-  return *static_cast<native_object_base*>(priv);
+  return *static_cast<native_object_base*>(nullptr);
 }
 
 object native_object_base::do_create_object(object const &prototype_) {
@@ -253,15 +311,15 @@ object native_object_base::do_create_enumerable_object(object const &prototype_)
 }
 
 //void native_object_base::impl::finalize(JSContext *ctx, JSObject *obj) { // REf: https://bug737365.bmoattachments.org/attachment.cgi?id=607922
-void native_object_base::impl::finalize(JSFreeOp *fop, JSObject *obj) {
+void native_object_base::impl::finalize(JS::GCContext* gcx, JSObject* obj) {
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetPrivate
   //void *p = JS_GetPrivate(ctx, obj);
-  void *p = JS_GetPrivate(obj);
+  //void *p = JS_GetPrivate(obj);
 
-  if (p) {
-    //current_context_scope scope(Impl::wrap_context(ctx)); // Ref: https://bug737365.bmoattachments.org/attachment.cgi?id=607922
-    delete static_cast<native_object_base*>(p);
-  }
+  //if (p) {
+ //   //current_context_scope scope(Impl::wrap_context(ctx)); // Ref: https://bug737365.bmoattachments.org/attachment.cgi?id=607922
+ //   delete static_cast<native_object_base*>(p);
+  //}
 }
 
 // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSNative
@@ -347,7 +405,7 @@ bool native_object_base::impl::new_resolve(
 
 //bool native_object_base::impl::new_enumerate(
 //    JSContext *ctx, JSObject *obj, JSIterateOp enum_op, jsval *statep, jsid *idp)
-bool native_object_base::impl::new_enumerate(JSContext *ctx, JSObject *obj, JS::AutoIdVector &properties)
+bool native_object_base::impl::new_enumerate(JSContext *ctx, JSObject *obj, JS::MutableHandle<JS::StackGCVector<JS::PropertyKey>> properties, bool result)
 {
   // Ref:  https://bug1097267.bmoattachments.org/attachment.cgi?id=8526676   // return the properties of the object in output properties
   /*
