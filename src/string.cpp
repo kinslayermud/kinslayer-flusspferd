@@ -99,10 +99,10 @@ flusspferd::js_char16_t const *string::data() const {
   assert(get_string(*this));
   // Ref: https://bug609440.bmoattachments.org/attachment.cgi?id=497392 and latest jsapi.h
   //return (const js_char16_t*)JS_GetStringCharsZAndLength(Impl::current_context(), get_string(*this));
-  JSFlatString* fstr = JS_FlattenString(Impl::current_context(), get_string(*this));
+  JSLinearString* fstr = JS_EnsureLinearString(Impl::current_context(), get_string(*this));
   assert(fstr);
   JS::AutoCheckCannotGC nogc;
-  return (const js_char16_t*)JS_GetTwoByteFlatStringChars(nogc, fstr);
+  return (const js_char16_t*)JS::GetTwoByteLinearStringChars(nogc, fstr);
 }
 
 char const *string::c_str() const {
@@ -110,8 +110,10 @@ char const *string::c_str() const {
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetStringBytes
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_EncodeString
   //return JS_GetStringBytes(get_string(*this));
-  return JS_EncodeString(Impl::current_context(), get_string(*this));
-
+  JSLinearString* fstr = JS_EnsureLinearString(Impl::current_context(), get_string(*this));
+  assert(fstr);
+  JS::AutoCheckCannotGC nogc;
+  return (char const*)JS::GetLatin1LinearStringChars(nogc, fstr);
 }
 
 std::string string::to_string() const {
@@ -119,7 +121,10 @@ std::string string::to_string() const {
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetStringBytes
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_EncodeString
   // return JS_GetStringBytes(get_string(*this));
-  return JS_EncodeString(Impl::current_context(), get_string(*this));
+  JSLinearString* fstr = JS_EnsureLinearString(Impl::current_context(), get_string(*this));
+  assert(fstr);
+  JS::AutoCheckCannotGC nogc;
+  return std::string((char*)JS::GetLatin1LinearStringChars(nogc, fstr));
 }
 
 std::basic_string<flusspferd::js_char16_t> string::to_utf16_string() const {
@@ -128,10 +133,10 @@ std::basic_string<flusspferd::js_char16_t> string::to_utf16_string() const {
   std::size_t len = JS_GetStringLength(str);
   // Ref: See jsapi.h, line 5818
   //char16_t *text = JS_GetStringChars(str); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/jschar
-  JSFlatString* fstr = JS_FlattenString(Impl::current_context(), str);
+  JSLinearString * fstr = JS_EnsureLinearString(Impl::current_context(), str);
   assert(fstr);
   JS::AutoCheckCannotGC nogc;
-  const char16_t* text = JS_GetTwoByteFlatStringChars(nogc, fstr);
+  const char16_t* text = JS::GetTwoByteLinearStringChars(nogc, fstr);
   assert(text);
   return std::basic_string<js_char16_t>((js_char16_t*)text, len);
 }
