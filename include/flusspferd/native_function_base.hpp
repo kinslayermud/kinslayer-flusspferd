@@ -76,6 +76,7 @@ private:
   boost::scoped_ptr<impl> p;
 
   friend class impl;
+  static JSClassOps ops1;
 };
 
 template<typename T>

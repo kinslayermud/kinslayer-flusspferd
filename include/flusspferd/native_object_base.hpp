@@ -277,6 +277,9 @@ private:
   boost::scoped_ptr<impl> *p;
 
   friend class impl;
+
+  static JSClassOps ops1;
+  static JSClassOps ops2;
 #endif
 };
 

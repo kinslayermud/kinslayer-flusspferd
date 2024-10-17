@@ -51,7 +51,8 @@ public:
   static bool call_helper(JSContext *ctx, uintN argc, jsval *argv);
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSFinalizeOp
   //static void finalize(JSContext *, JSObject *);
-  static void finalize(JSFreeOp *fop, JSObject *);
+  //static void finalize(JSFreeOp *fop, JSObject *);
+  static void finalize(JS::GCContext* gcx, JSObject *);
 
 #if JS_VERSION >= 180
   static void trace_op(JSTracer *trc, JSObject *obj);
@@ -82,30 +83,26 @@ native_function_base::~native_function_base() { }
 #if JS_VERSION >= 180
 // Ref: https://bug638291.bmoattachments.org/attachment.cgi?id=516449
 //#define MARK_TRACE_OP ((JSMarkOp) &native_function_base::impl::trace_op)
-#define MARK_TRACE_OP ((JSTraceOp*) &native_function_base::impl::trace_op)
+#define MARK_TRACE_OP ((JSTraceOp) &native_function_base::impl::trace_op)
 #else
 #define MARK_TRACE_OP (&native_function_base::impl::mark_op)
 #endif
 
-JSClass native_function_base::impl::function_priv_class = {
-  "FunctionParent",
-  // Ref: spdmky 128
-  //JSCLASS_HAS_PRIVATE
-#if JS_VERSION >= 180
-  //| JSCLASS_MARK_IS_TRACE // Ref: https://bugzilla.mozilla.org/attachment.cgi?id=516449&action=diff and https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSClass.flags
-#endif
-  ,
-  0, 0, 0, 0,
-  0, 0, 0,
+JSClassOps native_function_base::ops1 = {
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
   &native_function_base::impl::finalize,
   0,
   0,
-  0,
-  0,
-  0,
-  0,
-  MARK_TRACE_OP,
-  0
+  MARK_TRACE_OP
+};
+
+JSClass native_function_base::impl::function_priv_class = {
+  "FunctionParent", 0, &ops1
 };
 
 #undef MARK_TRACE_OP
@@ -126,7 +123,7 @@ function native_function_base::create_function() {
       throw exception("Could not create native function");
 
     //JS_SetPrivate(ctx, priv, this); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetPrivate
-    JS_SetPrivate(priv, this);
+    //JS_SetPrivate(priv, this);
 
     // https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewFunction (parent removed)
     // fun = JS_NewFunction(ctx, &impl::call_helper, p->arity, 0, 0, p->name.c_str());
@@ -172,9 +169,9 @@ bool native_function_base::impl::call_helper(JSContext *ctx,  uintN argc, jsval 
 
     //if (!JS_GetReservedSlot(ctx, function, 1, &self_val)) // https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetReservedSlot
     // ref: spdmky 128
-    self_val = JS_GetReservedSlot(function, 1);
-    if (self_val.isNull()) // https://bug952650.bmoattachments.org/attachment.cgi?id=8413485
-      throw exception("Could not call native function");
+    //self_val = JS_GetReservedSlot(function, 1);
+    //if (self_val.isNull()) // https://bug952650.bmoattachments.org/attachment.cgi?id=8413485
+    //  throw exception("Could not call native function");
 
 
     // native_function_base *self = (native_function_base *)JSVAL_TO_PRIVATE(self_val); // https://bug952650.bmoattachments.org/attachment.cgi?id=8413511
@@ -226,10 +223,11 @@ uint32 native_function_base::impl::mark_op(
 
 // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSFinalizeOp
 //void native_function_base::impl::finalize(JSContext *ctx, JSObject *priv) {
-void native_function_base::impl::finalize(JSFreeOp *fop, JSObject *priv) {
+void native_function_base::impl::finalize(JS::GCContext* gcx, JSObject *priv) {
   JSContext *ctx = Impl::current_context();
   current_context_scope scope(Impl::wrap_context(ctx));
 
+#ifdef ENABLED
   native_function_base *self =
     //(native_function_base *) JS_GetInstancePrivate(ctx, priv, &function_priv_class, 0); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetInstancePrivate
     (native_function_base *) JS_GetInstancePrivate(ctx, JS::HandleObject::fromMarkedLocation(&priv), &function_priv_class, 0);
@@ -238,6 +236,7 @@ void native_function_base::impl::finalize(JSFreeOp *fop, JSObject *priv) {
     throw exception("Could not finalize native function");
 
   delete self;
+#endif
 }
 
 native_function_base *native_function_base::get_native(object const &o_) {
@@ -246,6 +245,7 @@ native_function_base *native_function_base::get_native(object const &o_) {
   object o = o_;
   JSObject *p = Impl::get_object(o);
 
+#ifdef ENABLED
   native_function_base *self =
     //(native_function_base *) JS_GetInstancePrivate(ctx, p, &impl::function_priv_class, 0); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GetInstancePrivate 
     (native_function_base *) JS_GetInstancePrivate(ctx, JS::HandleObject::fromMarkedLocation(&p), &impl::function_priv_class, 0);
@@ -279,6 +279,8 @@ native_function_base *native_function_base::get_native(object const &o_) {
     throw exception("Could not get native function pointer");
 
   return self;
+#endif
+  return nullptr;
 }
 
 void native_function_base::trace(tracer&) {}
