@@ -48,24 +48,21 @@ THE SOFTWARE.
 using namespace flusspferd;
 
 namespace {
-  static JSClass global_class = {
-    "global", JSCLASS_GLOBAL_FLAGS,
-    0,
+  // Ref: spdmky 128
+  static JSClassOps  global_class_ops = {
     0,
     0,
     0,
     0, 
     0,
     0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+    0, 
+    0, 
     0,
     0
+  };
+  static JSClass global_class = {
+    "global", JSCLASS_GLOBAL_FLAGS, &global_class_ops
   };
 }
 
@@ -79,8 +76,9 @@ struct context::context_private {
 class context::impl {
 public:
   impl()
-    : context(JS_NewContext(Impl::get_runtime(),
-                            FLUSSPFERD_STACKCHUNKSIZE)),
+    // Ref: spdmky 128
+    //: context(JS_NewContext(Impl::get_runtime(), FLUSSPFERD_STACKCHUNKSIZE)),
+    : context(JS_NewContext(FLUSSPFERD_STACKCHUNKSIZE, Impl::get_runtime())),
       destroy(true)
   {
     if(!context)
@@ -103,7 +101,8 @@ public:
 #endif
     // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetErrorReporter
     //JS_SetErrorReporter(context, spidermonkey_error_reporter);
-    JS_SetErrorReporter(JS_GetRuntime(context), spidermonkey_error_reporter);
+    // Ref: spdmky 128
+    //JS_SetErrorReporter(JS_GetRuntime(context), spidermonkey_error_reporter);
 
     // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_NewObject
     // JSObject *global_ = JS_NewObject(context, &global_class, 0x0, 0x0);
@@ -115,7 +114,9 @@ public:
     //JS_SetGlobalObject(context, global_);
     //if(!JS_InitStandardClasses(context, global_))
 
-    if(!JS_InitStandardClasses(context, JS::HandleObject::fromMarkedLocation(&global_)))
+    // Ref: https://github.com/mozilla-spidermonkey/spidermonkey-embedding-examples/blob/esr115/docs/Migration%20Guide.md
+    //if(!JS_InitStandardClasses(context, JS::HandleObject::fromMarkedLocation(&global_)))
+    if(JS::InitRealmStandardClasses(context))
       throw exception("Could not initialize Global Object");
 
     // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_DeleteProperty
@@ -147,6 +148,8 @@ public:
     return static_cast<context_private*>(JS_GetContextPrivate(context));
   }
 
+// Ref: obsolete function. See https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetErrorReporter
+#ifdef ENABLED
   static void spidermonkey_error_reporter(JSContext *cx, char const *message, JSErrorReport *report) {
 
     if (!report || JSREPORT_IS_EXCEPTION(report->flags)) {
@@ -166,6 +169,7 @@ public:
     std::cerr << std::endl;
 
   }
+#endif
 
   JSContext *context;
   bool destroy;
@@ -260,7 +264,9 @@ object context::constructor(std::string const &name) const {
 void context::gc() {
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GC
   //JS_GC(p->context);
-  JS_GC(JS_GetRuntime(p->context));
+  // Ref: spdmky 128
+  //JS_GC(JS_GetRuntime(p->context));
+  JS_GC(p->context);
 }
 
 void context::set_thread() {
