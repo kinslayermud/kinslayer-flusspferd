@@ -41,6 +41,7 @@ THE SOFTWARE.
 #include <cassert>
 #include <js/jsapi.h>
 #include <js/jsfriendapi.h>
+#include <js/Array.h>
 
 #if JS_VERSION < 180
 #include <js/jsobj.h>
@@ -63,7 +64,9 @@ object object::parent() {
     throw exception("Could not get object parent (object is null)");
   // Ref: https://bug1131805.bmoattachments.org/attachment.cgi?id=8570319
   //return Impl::wrap_object(JS_GetParent(Impl::current_context(), get()));
-  return Impl::wrap_object(js::GetGlobalForObjectCrossCompartment(get()));
+  // Ref: spdmky 128
+  //return Impl::wrap_object(js::GetGlobalForObjectCrossCompartment(get()));
+  return Impl::wrap_object(JS::GetNonCCWObjectGlobal(get()));
 }
 
 object object::prototype() {
@@ -293,10 +296,11 @@ void object::define_property(
   if (~flags & dont_enumerate) sm_flags |= JSPROP_ENUMERATE;
   if (flags & read_only_property) sm_flags |= JSPROP_READONLY;
   if (flags & permanent_property) sm_flags |= JSPROP_PERMANENT;
-  if (flags & shared_property) sm_flags |= JSPROP_SHARED;
+  // Ref: spdmky 128
+  //if (flags & shared_property) sm_flags |= JSPROP_SHARED;
 
-  if (getter_o) sm_flags |= JSPROP_GETTER;
-  if (setter_o) sm_flags |= JSPROP_SETTER;
+  //if (getter_o) sm_flags |= JSPROP_GETTER;
+  //if (setter_o) sm_flags |= JSPROP_SETTER;
 
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_DefineProperty
   /* if (!JS_DefineUCProperty(Impl::current_context(),
@@ -308,6 +312,8 @@ void object::define_property(
                            sm_flags)) */
   JSObject* o = get_const();
   jsval val = Impl::get_jsval(v);
+  // Ref: spdmky 128
+#ifdef ENABLED
   if (!JS_DefineUCProperty(Impl::current_context(), 
 			   JS::HandleObject::fromMarkedLocation(&o),
 			   (char16_t*)name.data(),
@@ -316,6 +322,13 @@ void object::define_property(
 			   sm_flags,
 			   *(JSNative*)&getter_o,
 			   *(JSNative*)&setter_o))
+#endif
+    if (!JS_DefineUCProperty(Impl::current_context(),
+                             JS::HandleObject::fromMarkedLocation(&o),
+                             (char16_t*)name.data(),
+			     name.length(),
+			     JS::HandleValue::fromMarkedLocation(&val),
+			     sm_flags))
 
     throw exception("Could not define property");
 }
@@ -426,7 +439,9 @@ bool object::is_array() const {
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_IsArrayObject
   JSObject* obj = get_const();
   bool isArray;
-  return JS_IsArrayObject(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj), &isArray);
+  // Ref: spdmky 128 & https://github.com/mozilla-spidermonkey/spidermonkey-embedding-examples/blob/esr115/docs/Migration%20Guide.md
+  //return JS_IsArrayObject(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj), &isArray);
+  return JS::IsArrayObject(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&obj), &isArray);
 }
 
 bool object::is_generator() const {
@@ -440,7 +455,9 @@ bool object::is_generator() const {
   // JSClass back. SO make a best effort guess
   // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_GET_CLASS
   //JSClass *our_class = JS_GET_CLASS(ctx, get_const());
-  const JSClass *our_class = JS_GetClass(get_const());
+  // Ref: spdmky 128
+  // const JSClass *our_class = JS_GetClass(get_const());
+  const JSClass *our_class = JS::GetClass(get_const());
 
   return strcmp(our_class->name, "Generator") == 0
       && get_property("next").is_function();
@@ -466,9 +483,13 @@ bool object::get_property_attributes(
   //        Impl::current_context(), get_const(), (char16_t*)name.data(), name.length(),
   //        &sm_flags, &found,
   //        (JSPropertyOp*)&getter_op, (JSPropertyOp*)&setter_op);
-  JSPropertyDescriptor desc;
+  // Ref: spdmky 128
+  //JSPropertyDescriptor desc;
+  mozilla::Maybe<JS::PropertyDescriptor> desc;
   JSObject* o = get_const();
-  bool success = JS_GetOwnPropertyDescriptor(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&o), (char*)name.data(), JS::MutableHandle<JSPropertyDescriptor>::fromMarkedLocation(&desc));
+  // Ref: spdmky 128
+  //bool success = JS_GetOwnPropertyDescriptor(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&o), (char*)name.data(), JS::MutableHandle<JSPropertyDescriptor>::fromMarkedLocation(&desc));
+  bool success = JS_GetOwnPropertyDescriptor(Impl::current_context(), JS::HandleObject::fromMarkedLocation(&o), (char*)name.data(), JS::MutableHandle<mozilla::Maybe<JS::PropertyDescriptor>>::fromMarkedLocation(&desc));
 
   if (!success)
     throw exception("Could not query property attributes");
@@ -482,14 +503,23 @@ bool object::get_property_attributes(
     attrs.flags = attrs.flags | permanent_property;
   if (sm_flags & JSPROP_READONLY)
     attrs.flags = attrs.flags | read_only_property;
-  if (sm_flags & JSPROP_SHARED)
-    attrs.flags = attrs.flags | shared_property;
+  // Ref: spdmky 128
+  //if (sm_flags & JSPROP_SHARED)
+  //  attrs.flags = attrs.flags | shared_property;
 
   // Ref: jsapi.h 
   // New structure provides getter and setter members
-  getter_op = (void*)desc.getter;
-  setter_op = (void*)desc.setter;
+  // Ref : spdmky 128
+  //getter_op = (void*)desc.getter;
+  //setter_op = (void*)desc.setter;
+  if(desc.isSome()){
+    JS::PropertyDescriptor d = desc.value();
+    getter_op = (void*)d.getter();
+    setter_op = (void*)d.setter();
+  }
 
+// Ref: spdmky 128
+#ifdef ENABLED
   if (getter_op) {
     if (sm_flags & JSPROP_GETTER) {
       attrs.getter = std::make_shared<function>(static_cast<function>(object(Impl::wrap_object((JSObject*)getter_op))));
@@ -505,6 +535,7 @@ bool object::get_property_attributes(
       // What do i set attrs.setter to here....?
     }
   }
+#endif
   return true;
 }
 
