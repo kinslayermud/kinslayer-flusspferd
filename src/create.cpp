@@ -39,6 +39,7 @@ THE SOFTWARE.
 #include <js/Array.h>
 #include <js/CompilationAndEvaluation.h>
 #include <js/SourceText.h>
+#include <js/EnvironmentChain.h>
 
 using namespace flusspferd;
 
@@ -110,7 +111,8 @@ function flusspferd::create_function(
   if (!initialized) throw exception("Could not compile function");
   // Ref: spiderMonkey 128
   //bool result = JS::CompileFunction(cx, aov, JS::CompileOptions(cx), name.c_str(), n_args, &argnames_c[0], (const char16_t*)body.data(), body.length(), JS::MutableHandleFunction::fromMarkedLocation(&fun));
-  fun = JS::CompileFunction(cx, aov, JS::CompileOptions(cx), name.c_str(), n_args, &argnames_c[0], srcText);
+  JS::EnvironmentChain envchain(cx, JS::SupportUnscopables::Yes);
+  fun = JS::CompileFunction(cx, envchain, JS::CompileOptions(cx), name.c_str(), n_args, &argnames_c[0], srcText);
 
   if (!fun)
     throw exception("Could not compile function");

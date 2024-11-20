@@ -36,6 +36,7 @@ THE SOFTWARE.
 #include <js/jsapi.h>
 #include <js/CompilationAndEvaluation.h>
 #include <js/SourceText.h>
+#include <js/EnvironmentChain.h>
 
 #include <cstring>
 
@@ -145,8 +146,8 @@ value flusspferd::execute(char const *filename, object const &scope_) {
   //JS::AutoObjectVector scopeVector(cx);
   JS::RootedObjectVector scopeVector(cx);
   result = scopeVector.append(scope);
-
-  bool ok = JS_ExecuteScript(cx, scopeVector, JS::HandleScript::fromMarkedLocation(&script), JS::MutableHandleValue::fromMarkedLocation(Impl::get_jsvalp(result))); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ExecuteScript
+  JS::EnvironmentChain envchain(cx, JS::SupportUnscopables::Yes);
+  bool ok = JS_ExecuteScript(cx, envchain, JS::HandleScript::fromMarkedLocation(&script), JS::MutableHandleValue::fromMarkedLocation(Impl::get_jsvalp(result))); // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_ExecuteScript
 
   if (!ok) {
     exception e("Script execution failed");
