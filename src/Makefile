@@ -21,7 +21,7 @@ OBJDIR = obj
 LIBDIR = ../lib
 
 OBJFILES = arguments.o array.o binary.o binary_stream.o class.o context.o convert.o create.o encodings.o evaluate.o \
-exception.o file.o filesystem-base.o flusspferd.o flusspferd_module.o function.o function_adapter.o getopt.o init.o \
+exception.o file.o filesystem-base.o flusspferd_module.o function.o function_adapter.o getopt.o init.o \
 io.o json2.o load_core.o local_root_scope.o modules.o native_function_base.o native_object_base.o object.o \
 properties_functions.o property_attributes.o property_iterator.o root.o security.o stream.o string.o system.o \
 tracer.o value.o
