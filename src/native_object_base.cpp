@@ -324,7 +324,7 @@ void native_object_base::impl::finalize(JS::GCContext* gcx, JSObject* obj) {
 
 // Ref: https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JSNative
 //bool native_object_base::impl::call_helper(JSContext *ctx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-bool call_helper(JSContext *ctx, unsigned argc, JS::Value *vp)
+bool native_object_base::impl::call_helper(JSContext *ctx, unsigned argc, JS::Value *vp)
 
 {
   FLUSSPFERD_CALLBACK_BEGIN {
