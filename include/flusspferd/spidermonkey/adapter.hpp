@@ -44,3 +44,5 @@ typedef double jsdouble;
 #define moz_arena_malloc(arena, bytes) js_arena_calloc(js::MallocArena, bytes)
 #define moz_arena_calloc(arena, bytes) js_arena_calloc(js::MallocArena, bytes)
 #define moz_arena_realloc(arena, p, bytes) js_arena_realloc(js::MallocArena, p, bytes)
+
+#endif // FLUSSPFERD_SPIDERMONKEY_ADAPTER_HPP
